@@ -14,7 +14,7 @@
 - `.github/workflows/firebase-hosting.yml` - CI/CD pipeline
 
 ## Task Progress
-Total Tasks: 32 | Completed: 6 | In Progress: 0 | Remaining: 26
+Total Tasks: 32 | Completed: 7 | In Progress: 0 | Remaining: 25
 
 ## Tasks
 
@@ -25,7 +25,7 @@ Total Tasks: 32 | Completed: 6 | In Progress: 0 | Remaining: 26
   - [x] 1.4 Set up Firebase Authentication with Google provider
   - [x] 1.5 Create authorized users whitelist in Firestore
   - [x] 1.6 Implement auth context and protected routes
-  - [ ] 1.7 Write tests for authentication flow
+  - [x] 1.7 Write tests for authentication flow
   - [ ] 1.8 Set up GitHub Actions for CI/CD to Firebase Hosting
 
 - [ ] 2.0 Project Foundation & UI Framework  
