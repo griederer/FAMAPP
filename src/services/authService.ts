@@ -29,9 +29,10 @@ class AuthService {
       // Create or update user document
       const user = await this.createOrUpdateUser(firebaseUser);
       return user;
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Sign-in error:', error);
-      throw new Error(error.message || 'Failed to sign in');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to sign in';
+      throw new Error(errorMessage);
     }
   }
 
@@ -41,7 +42,7 @@ class AuthService {
   async signOut(): Promise<void> {
     try {
       await firebaseSignOut(auth);
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Sign-out error:', error);
       throw new Error('Failed to sign out');
     }

@@ -62,6 +62,7 @@ export function UserProfile({ className = '' }: UserProfileProps) {
             onClick={handleSignOut}
             disabled={loading === 'loading'}
             className="signout-button"
+            aria-label="Sign out"
           >
             {loading === 'loading' ? 'Signing out...' : 'Sign out'}
           </button>

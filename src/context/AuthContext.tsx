@@ -42,8 +42,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const user = await authService.signInWithGoogle();
       setUser(user);
       setLoading('success');
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Authentication failed';
+      setError(errorMessage);
       setLoading('error');
       setUser(null);
     }
@@ -56,8 +57,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
       await authService.signOut();
       setUser(null);
       setLoading('idle');
-    } catch (err: any) {
-      setError(err.message);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : 'Sign out failed';
+      setError(errorMessage);
       setLoading('error');
     }
   };

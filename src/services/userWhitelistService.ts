@@ -85,7 +85,7 @@ class UserWhitelistService {
         return {
           ...data,
           updatedAt: data.updatedAt?.toDate() || new Date(),
-          authorizedUsers: data.authorizedUsers?.map((user: any) => ({
+          authorizedUsers: data.authorizedUsers?.map((user: AuthorizedUser & {addedAt?: {toDate(): Date}}) => ({
             ...user,
             addedAt: user.addedAt?.toDate() || new Date()
           })) || []
