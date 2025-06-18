@@ -7,24 +7,8 @@ import {
 } from 'firebase/auth';
 import { doc, setDoc, getDoc, updateDoc } from 'firebase/firestore';
 import { auth, googleProvider, db } from '../config/firebase';
+import { userWhitelistService } from './userWhitelistService';
 import type { User, FamilyMember } from '../types';
-
-// Authorized family email addresses
-const AUTHORIZED_EMAILS = [
-  // TODO: Replace with actual family emails
-  'gonzalo@example.com',
-  'mpaz@example.com', 
-  'borja@example.com',
-  'melody@example.com'
-];
-
-// Map emails to family member names
-const EMAIL_TO_FAMILY_MEMBER: Record<string, FamilyMember> = {
-  'gonzalo@example.com': 'Gonzalo',
-  'mpaz@example.com': 'Mpaz',
-  'borja@example.com': 'Borja', 
-  'melody@example.com': 'Melody'
-};
 
 class AuthService {
   /**
@@ -35,8 +19,9 @@ class AuthService {
       const result = await signInWithPopup(auth, googleProvider);
       const firebaseUser = result.user;
       
-      // Check if user is authorized
-      if (!this.isAuthorizedEmail(firebaseUser.email)) {
+      // Check if user is authorized using whitelist service
+      const isAuthorized = await userWhitelistService.isEmailAuthorized(firebaseUser.email!);
+      if (!isAuthorized) {
         await this.signOut();
         throw new Error('Unauthorized: Only family members can access this app');
       }
@@ -63,25 +48,25 @@ class AuthService {
   }
 
   /**
-   * Check if email is authorized
+   * Check if email is authorized (async version using whitelist service)
    */
-  isAuthorizedEmail(email: string | null): boolean {
+  async isAuthorizedEmail(email: string | null): Promise<boolean> {
     if (!email) return false;
-    return AUTHORIZED_EMAILS.includes(email.toLowerCase());
+    return await userWhitelistService.isEmailAuthorized(email);
   }
 
   /**
-   * Get family member name from email
+   * Get family member name from email (async version using whitelist service)
    */
-  getFamilyMemberFromEmail(email: string): FamilyMember | null {
-    return EMAIL_TO_FAMILY_MEMBER[email.toLowerCase()] || null;
+  async getFamilyMemberFromEmail(email: string): Promise<FamilyMember | null> {
+    return await userWhitelistService.getFamilyMemberFromEmail(email);
   }
 
   /**
    * Create or update user document in Firestore
    */
   private async createOrUpdateUser(firebaseUser: FirebaseUser): Promise<User> {
-    const familyMember = this.getFamilyMemberFromEmail(firebaseUser.email!);
+    const familyMember = await this.getFamilyMemberFromEmail(firebaseUser.email!);
     
     if (!familyMember) {
       throw new Error('Unable to determine family member for this email');
@@ -126,7 +111,7 @@ class AuthService {
    */
   onAuthStateChange(callback: (user: User | null) => void): () => void {
     return onAuthStateChanged(auth, async (firebaseUser) => {
-      if (firebaseUser && this.isAuthorizedEmail(firebaseUser.email)) {
+      if (firebaseUser && await this.isAuthorizedEmail(firebaseUser.email)) {
         try {
           const user = await this.createOrUpdateUser(firebaseUser);
           callback(user);

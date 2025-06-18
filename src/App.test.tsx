@@ -31,6 +31,12 @@ vi.mock('./config/firebase', () => ({
   FAMILY_MEMBERS: ['Gonzalo', 'Mpaz', 'Borja', 'Melody']
 }))
 
+// Mock the initialization utility
+vi.mock('./utils/initializeApp', () => ({
+  initializeApp: vi.fn().mockResolvedValue(undefined),
+  checkAppInitialization: vi.fn().mockResolvedValue(true)
+}))
+
 describe('App', () => {
   it('renders FAMAPP heading when authenticated', async () => {
     render(<App />)

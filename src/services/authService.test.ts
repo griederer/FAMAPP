@@ -22,48 +22,51 @@ vi.mock('../config/firebase', () => ({
   FAMILY_MEMBERS: ['Gonzalo', 'Mpaz', 'Borja', 'Melody']
 }))
 
+// Mock the whitelist service
+vi.mock('./userWhitelistService', () => ({
+  userWhitelistService: {
+    isEmailAuthorized: vi.fn(),
+    getFamilyMemberFromEmail: vi.fn(),
+    initializeWhitelist: vi.fn(),
+    getWhitelist: vi.fn(),
+  }
+}))
+
 describe('AuthService', () => {
   beforeEach(() => {
     vi.clearAllMocks()
   })
 
   describe('isAuthorizedEmail', () => {
-    it('returns true for authorized emails', () => {
-      expect(authService.isAuthorizedEmail('gonzalo@example.com')).toBe(true)
-      expect(authService.isAuthorizedEmail('mpaz@example.com')).toBe(true)
-      expect(authService.isAuthorizedEmail('borja@example.com')).toBe(true)
-      expect(authService.isAuthorizedEmail('melody@example.com')).toBe(true)
+    it('calls whitelist service for authorization check', async () => {
+      const { userWhitelistService } = await import('./userWhitelistService')
+      
+      // Mock the service to return true
+      vi.mocked(userWhitelistService.isEmailAuthorized).mockResolvedValue(true)
+      
+      const result = await authService.isAuthorizedEmail('gonzalo@example.com')
+      
+      expect(userWhitelistService.isEmailAuthorized).toHaveBeenCalledWith('gonzalo@example.com')
+      expect(result).toBe(true)
     })
 
-    it('returns false for unauthorized emails', () => {
-      expect(authService.isAuthorizedEmail('stranger@example.com')).toBe(false)
-      expect(authService.isAuthorizedEmail('random@gmail.com')).toBe(false)
-    })
-
-    it('returns false for null email', () => {
-      expect(authService.isAuthorizedEmail(null)).toBe(false)
-    })
-
-    it('is case insensitive', () => {
-      expect(authService.isAuthorizedEmail('GONZALO@EXAMPLE.COM')).toBe(true)
-      expect(authService.isAuthorizedEmail('Mpaz@Example.Com')).toBe(true)
+    it('returns false for null email', async () => {
+      const result = await authService.isAuthorizedEmail(null)
+      expect(result).toBe(false)
     })
   })
 
   describe('getFamilyMemberFromEmail', () => {
-    it('returns correct family member for authorized emails', () => {
-      expect(authService.getFamilyMemberFromEmail('gonzalo@example.com')).toBe('Gonzalo')
-      expect(authService.getFamilyMemberFromEmail('mpaz@example.com')).toBe('Mpaz')
-      expect(authService.getFamilyMemberFromEmail('borja@example.com')).toBe('Borja')
-      expect(authService.getFamilyMemberFromEmail('melody@example.com')).toBe('Melody')
-    })
-
-    it('returns null for unauthorized emails', () => {
-      expect(authService.getFamilyMemberFromEmail('stranger@example.com')).toBe(null)
-    })
-
-    it('is case insensitive', () => {
-      expect(authService.getFamilyMemberFromEmail('GONZALO@EXAMPLE.COM')).toBe('Gonzalo')
+    it('calls whitelist service for family member lookup', async () => {
+      const { userWhitelistService } = await import('./userWhitelistService')
+      
+      // Mock the service to return family member
+      vi.mocked(userWhitelistService.getFamilyMemberFromEmail).mockResolvedValue('Gonzalo')
+      
+      const result = await authService.getFamilyMemberFromEmail('gonzalo@example.com')
+      
+      expect(userWhitelistService.getFamilyMemberFromEmail).toHaveBeenCalledWith('gonzalo@example.com')
+      expect(result).toBe('Gonzalo')
     })
   })
 

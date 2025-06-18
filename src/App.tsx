@@ -1,9 +1,18 @@
+import { useEffect } from 'react'
 import './App.css'
 import { AuthProvider } from './context/AuthContext'
 import { ProtectedRoute } from './components/auth/ProtectedRoute'
 import { UserProfile } from './components/auth/UserProfile'
+import { initializeApp } from './utils/initializeApp'
 
 function App() {
+  useEffect(() => {
+    // Initialize app configuration on startup
+    initializeApp().catch(error => {
+      console.error('Failed to initialize app:', error)
+    })
+  }, [])
+
   return (
     <AuthProvider>
       <div className="app">

@@ -2,35 +2,50 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
+    // Configuration collection - only for system management
+    match /config/{configId} {
+      allow read: if request.auth != null && isAuthorizedUserByWhitelist(request.auth.token.email);
+      allow write: if request.auth != null && isAuthorizedUserByWhitelist(request.auth.token.email);
+    }
+    
     // Users collection - only authenticated family members
     match /users/{userId} {
       allow read, write: if request.auth != null 
         && request.auth.uid == userId
-        && isAuthorizedUser(request.auth.token.email);
+        && isAuthorizedUserByWhitelist(request.auth.token.email);
     }
     
     // Todos collection - family members can read/write all todos
     match /todos/{todoId} {
       allow read, write: if request.auth != null 
-        && isAuthorizedUser(request.auth.token.email);
+        && isAuthorizedUserByWhitelist(request.auth.token.email);
     }
     
     // Events collection - family members can read/write all events
     match /events/{eventId} {
       allow read, write: if request.auth != null 
-        && isAuthorizedUser(request.auth.token.email);
+        && isAuthorizedUserByWhitelist(request.auth.token.email);
     }
     
     // Grocery lists collection - family members can read/write all lists
     match /groceries/{listId} {
       allow read, write: if request.auth != null 
-        && isAuthorizedUser(request.auth.token.email);
+        && isAuthorizedUserByWhitelist(request.auth.token.email);
     }
     
-    // Helper function to check authorized family members
-    function isAuthorizedUser(email) {
+    // Helper function to check authorized family members using whitelist
+    function isAuthorizedUserByWhitelist(email) {
+      let whitelist = get(/databases/$(database)/documents/config/family-whitelist);
+      let authorizedUsers = whitelist.data.authorizedUsers;
+      
+      return authorizedUsers != null && 
+             authorizedUsers.hasAny([{'email': email, 'isActive': true}]);
+    }
+    
+    // Fallback helper function for initial setup (before whitelist exists)
+    function isAuthorizedUserFallback(email) {
       return email in [
-        // TODO: Add actual family member emails here
+        // Fallback emails for initial setup
         'gonzalo@example.com',
         'mpaz@example.com', 
         'borja@example.com',
