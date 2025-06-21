@@ -14,7 +14,7 @@
 - `.github/workflows/firebase-hosting.yml` - CI/CD pipeline
 
 ## Task Progress
-Total Tasks: 32 | Completed: 7 | In Progress: 0 | Remaining: 25
+Total Tasks: 32 | Completed: 8 | In Progress: 0 | Remaining: 24
 
 ## Tasks
 
@@ -26,14 +26,14 @@ Total Tasks: 32 | Completed: 7 | In Progress: 0 | Remaining: 25
   - [x] 1.5 Create authorized users whitelist in Firestore
   - [x] 1.6 Implement auth context and protected routes
   - [x] 1.7 Write tests for authentication flow
-  - [ ] 1.8 Set up GitHub Actions for CI/CD to Firebase Hosting
+  - [x] 1.8 Set up GitHub Actions for CI/CD to Firebase Hosting
 
 - [ ] 2.0 Project Foundation & UI Framework  
-  - [ ] 2.1 Install and configure Tailwind CSS
-  - [ ] 2.2 Create minimal design system (colors, typography, spacing)
-  - [ ] 2.3 Implement dark/light mode toggle with system preference
-  - [ ] 2.4 Create base layout with navigation tabs
-  - [ ] 2.5 Add family member tag component with avatars
+  - [x] 2.1 Install and configure Tailwind CSS
+  - [x] 2.2 Create minimal design system (colors, typography, spacing)
+  - [x] 2.3 Implement dark/light mode toggle with system preference
+  - [x] 2.4 Create base layout with navigation tabs
+  - [x] 2.5 Add family member tag component with avatars
   - [ ] 2.6 Implement bilingual support (ES/EN) with React context
   - [ ] 2.7 Create loading and error state components
   - [ ] 2.8 Write tests for UI components

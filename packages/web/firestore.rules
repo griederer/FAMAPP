@@ -1,0 +1,51 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+    
+    // Configuration collection - lectura para usuarios autenticados, escritura para admin
+    match /config/{configId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && 
+        (request.auth.token.email == 'riederer@gmail.com' || 
+         request.auth.token.email == 'mpazmoralesbarra@gmail.com');
+    }
+    
+    // Todos collection - acceso completo para usuarios autenticados
+    match /todos/{todoId} {
+      allow read, write: if isAuthenticated();
+    }
+    
+    // Events collection - acceso completo para usuarios autenticados
+    match /events/{eventId} {
+      allow read, write: if isAuthenticated();
+    }
+    
+    // Grocery lists collection - acceso completo para usuarios autenticados
+    match /grocery_lists/{listId} {
+      allow read, write: if isAuthenticated();
+    }
+    
+    // Grocery items collection - acceso completo para usuarios autenticados
+    match /grocery_items/{itemId} {
+      allow read, write: if isAuthenticated();
+    }
+    
+    // Family documents collection - acceso completo para usuarios autenticados
+    match /family_documents/{documentId} {
+      allow read, write: if isAuthenticated();
+    }
+    
+    // Users collection - solo su propio documento
+    match /users/{userId} {
+      allow read, write: if isAuthenticated() && request.auth.uid == userId;
+    }
+    
+    // Deny all other requests
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

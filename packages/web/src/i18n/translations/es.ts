@@ -1,0 +1,183 @@
+// Spanish translations for FAMAPP
+import type { TranslationKeys } from '../../types/i18n';
+
+export const es: TranslationKeys = {
+  // Common
+  'common.loading': 'Cargando...',
+  'common.error': 'Error',
+  'common.save': 'Guardar',
+  'common.cancel': 'Cancelar',
+  'common.delete': 'Eliminar',
+  'common.edit': 'Editar',
+  'common.add': 'Agregar',
+  'common.search': 'Buscar',
+  'common.filter': 'Filtrar',
+  'common.all': 'Todos',
+  'common.none': 'Ninguno',
+  'common.yes': 'Sí',
+  'common.no': 'No',
+  'common.ok': 'OK',
+  'common.back': 'Atrás',
+  'common.next': 'Siguiente',
+  'common.previous': 'Anterior',
+  'common.close': 'Cerrar',
+  'common.open': 'Abrir',
+  'common.settings': 'Configuración',
+  'common.help': 'Ayuda',
+  'common.dismiss': 'Descartar',
+  'common.empty_state': 'No hay datos disponibles',
+  'common.today': 'Hoy',
+  'common.tomorrow': 'Mañana',
+  'common.yesterday': 'Ayer',
+  'common.thisWeek': 'Esta Semana',
+  'common.nextWeek': 'Próxima Semana',
+  'common.thisMonth': 'Este Mes',
+  'common.nextMonth': 'Próximo Mes',
+
+  // App
+  'app.title': 'FAMAPP',
+  'app.subtitle': 'Organizador Familiar',
+  'app.welcome': 'Bienvenido a FAMAPP',
+  'app.description': 'Tu aplicación de organización familiar se está construyendo con amor ❤️',
+
+  // Errors
+  'errors.boundary.title': 'Algo salió mal',
+  'errors.boundary.description': 'Encontramos un error inesperado. Por favor, recarga la página.',
+  'errors.boundary.technical_details': 'Detalles Técnicos',
+  'errors.boundary.reload_page': 'Recargar Página',
+  'errors.boundary.go_back': 'Volver',
+
+  // Auth
+  'auth.signIn': 'Iniciar Sesión',
+  'auth.signOut': 'Cerrar Sesión',
+  'auth.signInWith': 'Continuar con Google',
+  'auth.signInError': 'Error al iniciar sesión. Inténtalo de nuevo.',
+  'auth.accessDenied': 'Acceso denegado. Solo los miembros de la familia pueden usar esta aplicación.',
+  'auth.familyMembersOnly': 'Solo los miembros de la familia pueden acceder a esta aplicación',
+  'auth.loading': 'Iniciando sesión...',
+
+  // Navigation
+  'nav.todos': 'Tareas',
+  'nav.calendar': 'Calendario',
+  'nav.groceries': 'Compras',
+
+  // Todos
+  'todos.title': 'Lista de Tareas',
+  'todos.addTask': 'Agregar Tarea',
+  'todos.pending': 'Tareas Pendientes',
+  'todos.completed': 'Completadas',
+  'todos.total': 'Total de Tareas',
+  'todos.completedToday': 'Completadas Hoy',
+  'todos.recentTasks': 'Tareas Recientes',
+  'todos.dueToday': 'Vence: Hoy',
+  'todos.dueNextWeek': 'Vence: Próxima semana',
+  'todos.assignedTo': 'Asignado a',
+  'todos.markComplete': 'Marcar como completada',
+  'todos.markIncomplete': 'Marcar como incompleta',
+  'todos.confirmDelete': '¿Estás seguro de que quieres eliminar esta tarea?',
+  'todos.priority.low': 'Baja',
+  'todos.priority.medium': 'Media',
+  'todos.priority.high': 'Alta',
+  'todos.errorLoading': 'Error al cargar las tareas',
+  'todos.emptyTitle': 'No hay tareas aún',
+  'todos.emptyDescription': 'Crea tu primera tarea para comenzar',
+  'todos.createFirst': 'Crear Tarea',
+  'todos.emptyFilterTitle': 'No se encontraron tareas',
+  'todos.emptyFilterDescription': 'No hay tareas que coincidan con el filtro actual. Intenta seleccionar un miembro diferente de la familia o borra el filtro.',
+  
+  // Todo Form
+  'todos.form.title': 'Título',
+  'todos.form.titlePlaceholder': '¿Qué necesitas hacer?',
+  'todos.form.description': 'Descripción',
+  'todos.form.descriptionPlaceholder': 'Agregar más detalles (opcional)',
+  'todos.form.priority': 'Prioridad',
+  'todos.form.assignTo': 'Asignar A',
+  'todos.form.dueDate': 'Fecha de Vencimiento',
+  'todos.form.tags': 'Etiquetas',
+  'todos.form.tagsPlaceholder': 'casa, trabajo, urgente',
+  'todos.form.tagsHelper': 'Separa las etiquetas con comas',
+  'todos.form.create': 'Crear Tarea',
+  'todos.form.save': 'Guardar Cambios',
+  'todos.form.creating': 'Creando...',
+  'todos.form.saving': 'Guardando...',
+  
+  // Todo Validation
+  'todos.validation.titleRequired': 'El título es obligatorio',
+  'todos.validation.titleTooLong': 'El título debe tener menos de 200 caracteres',
+  'todos.validation.descriptionTooLong': 'La descripción debe tener menos de 1000 caracteres',
+  'todos.validation.dueDatePast': 'La fecha de vencimiento no puede ser en el pasado',
+  
+  // Todo Bulk Actions
+  'todos.confirmBulkDelete': '¿Estás seguro de que quieres eliminar {count} tarea(s)?',
+  'todos.bulkActionsSelected': '{count} seleccionado(s)',
+  'todos.bulkAssign': 'Asignar',
+  'todos.bulkComplete': 'Completar',
+  'todos.bulkReopen': 'Reabrir',
+  'todos.bulkDelete': 'Eliminar',
+
+  // Calendar
+  'calendar.title': 'Calendario',
+  'calendar.addEvent': 'Agregar Evento',
+  'calendar.todaysEvents': 'Eventos de Hoy',
+  'calendar.thisWeek': 'Esta Semana',
+  'calendar.nextMonth': 'Próximo Mes',
+  'calendar.upcomingEvents': 'Próximos Eventos',
+  'calendar.noEvents': 'No hay eventos programados',
+  'calendar.allDay': 'Todo el día',
+  'calendar.organizer': 'Organizador',
+  'calendar.participant': 'Participante',
+
+  // Groceries
+  'groceries.title': 'Lista de Compras',
+  'groceries.newList': 'Nueva Lista',
+  'groceries.activeLists': 'Listas Activas',
+  'groceries.itemsToBuy': 'Artículos por Comprar',
+  'groceries.savedTemplates': 'Plantillas Guardadas',
+  'groceries.quickTemplates': 'Plantillas Rápidas',
+  'groceries.useTemplate': 'Usar',
+  'groceries.lastUpdated': 'Última actualización',
+  'groceries.items': 'artículos',
+  'groceries.moreItems': 'artículos más',
+
+  // Documents
+  'documents.title': 'Documentos Familiares',
+
+  // Family
+  'family.gonzalo': 'Gonzalo',
+  'family.mpaz': 'Mpaz',
+  'family.borja': 'Borja',
+  'family.melody': 'Melody',
+  'family.dad': 'Papá',
+  'family.mom': 'Mamá',
+  'family.son': 'Hijo',
+  'family.daughter': 'Hija',
+  'family.assignTo': 'Asignar a miembro de la familia',
+  'family.selectMember': 'Seleccionar miembro de la familia',
+  'family.multipleSelection': 'Selección Múltiple',
+  'family.singleSelection': 'Selección Individual',
+  'family.status.online': 'En línea',
+  'family.status.offline': 'Desconectado',
+  'family.status.away': 'Ausente',
+  'family.status.busy': 'Ocupado',
+
+  // Theme
+  'theme.light': 'Claro',
+  'theme.dark': 'Oscuro',
+  'theme.system': 'Sistema',
+  'theme.currentTheme': 'Tema actual',
+  'theme.clickToCycle': 'Clic para cambiar temas',
+
+  // Language
+  'language.english': 'English',
+  'language.spanish': 'Español',
+  'language.selectLanguage': 'Seleccionar idioma',
+
+  // Time
+  'time.justNow': 'ahora mismo',
+  'time.minutesAgo': 'hace {count} minutos',
+  'time.hoursAgo': 'hace {count} horas',
+  'time.daysAgo': 'hace {count} días',
+  'time.weeksAgo': 'hace {count} semanas',
+  'time.monthsAgo': 'hace {count} meses',
+
+};

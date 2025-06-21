@@ -1,0 +1,237 @@
+# Fastfile for FAMAPP Mobile iOS deployment
+
+default_platform(:ios)
+
+platform :ios do
+  desc "Description of what the lane does"
+  
+  # Configuration
+  SCHEME = "FAMAPPMobile"
+  WORKSPACE = "FAMAPPMobile.xcworkspace"
+  
+  before_all do
+    # Ensure we're in the right directory
+    ensure_git_branch(branch: ['main', 'master', 'release/*'])
+    
+    # Install CocoaPods dependencies
+    cocoapods
+  end
+
+  desc "Run tests"
+  lane :test do
+    run_tests(
+      workspace: WORKSPACE,
+      scheme: SCHEME,
+      devices: ["iPhone 14"],
+      clean: true
+    )
+  end
+
+  desc "Build app for development"
+  lane :build_dev do
+    gym(
+      workspace: WORKSPACE,
+      scheme: SCHEME,
+      configuration: "Debug",
+      clean: true,
+      output_directory: "./build",
+      output_name: "FAMAPPMobile-dev.ipa"
+    )
+  end
+
+  desc "Build app for staging"
+  lane :build_staging do
+    # Increment build number
+    increment_build_number(xcodeproj: "FAMAPPMobile.xcodeproj")
+    
+    gym(
+      workspace: WORKSPACE,
+      scheme: SCHEME,
+      configuration: "Release",
+      clean: true,
+      output_directory: "./build",
+      output_name: "FAMAPPMobile-staging.ipa",
+      export_method: "ad-hoc"
+    )
+  end
+
+  desc "Build and upload to TestFlight"
+  lane :beta do
+    # Increment build number
+    increment_build_number(xcodeproj: "FAMAPPMobile.xcodeproj")
+    
+    # Build the app
+    gym(
+      workspace: WORKSPACE,
+      scheme: SCHEME,
+      configuration: "Release",
+      clean: true,
+      output_directory: "./build",
+      export_method: "app-store"
+    )
+    
+    # Upload to TestFlight
+    pilot(
+      skip_waiting_for_build_processing: true,
+      changelog: "Bug fixes and improvements"
+    )
+    
+    # Send notification
+    slack(
+      message: "Successfully uploaded FAMAPP iOS to TestFlight! 🚀",
+      success: true
+    ) if ENV["SLACK_URL"]
+  end
+
+  desc "Deploy to App Store"
+  lane :release do
+    # Ensure we're on the right branch
+    ensure_git_branch(branch: ['main', 'master'])
+    
+    # Increment version number
+    version = prompt(text: "Enter version number (e.g., 1.0.1): ")
+    increment_version_number(version_number: version)
+    
+    # Increment build number
+    increment_build_number(xcodeproj: "FAMAPPMobile.xcodeproj")
+    
+    # Build the app
+    gym(
+      workspace: WORKSPACE,
+      scheme: SCHEME,
+      configuration: "Release",
+      clean: true,
+      output_directory: "./build",
+      export_method: "app-store"
+    )
+    
+    # Upload to App Store
+    deliver(
+      submit_for_review: false,
+      automatic_release: false,
+      force: true,
+      skip_metadata: false,
+      skip_screenshots: false
+    )
+    
+    # Create git tag
+    add_git_tag(tag: "ios-v#{version}")
+    push_git_tags
+    
+    # Send notification
+    slack(
+      message: "Successfully uploaded FAMAPP iOS v#{version} to App Store! 🎉",
+      success: true
+    ) if ENV["SLACK_URL"]
+  end
+
+  desc "Run all tests and build checks"
+  lane :ci do
+    # Run tests
+    test
+    
+    # Run static analysis
+    swiftlint(
+      mode: :lint,
+      config_file: '.swiftlint.yml',
+      raise_if_swiftlint_error: true
+    ) if File.exist?('.swiftlint.yml')
+    
+    # Build for staging to ensure it compiles
+    build_staging
+  end
+
+  desc "Setup certificates and provisioning profiles"
+  lane :setup_certificates do
+    match(
+      type: "development",
+      readonly: is_ci?,
+      keychain_name: "fastlane_tmp_keychain"
+    )
+    
+    match(
+      type: "appstore",
+      readonly: is_ci?,
+      keychain_name: "fastlane_tmp_keychain"
+    )
+  end
+
+  desc "Refresh certificates and provisioning profiles"
+  lane :refresh_certificates do
+    match(
+      type: "development",
+      force_for_new_devices: true
+    )
+    
+    match(
+      type: "appstore",
+      force_for_new_devices: true
+    )
+  end
+
+  desc "Take screenshots for App Store"
+  lane :screenshots do
+    capture_screenshots(
+      workspace: WORKSPACE,
+      scheme: SCHEME,
+      devices: [
+        "iPhone 14 Pro Max",
+        "iPhone 14",
+        "iPhone SE (3rd generation)",
+        "iPad Pro (12.9-inch) (6th generation)"
+      ]
+    )
+    
+    frameit(silver: true)
+  end
+
+  desc "Update metadata"
+  lane :update_metadata do
+    deliver(
+      submit_for_review: false,
+      automatic_release: false,
+      force: true,
+      skip_binary_upload: true,
+      skip_screenshots: true
+    )
+  end
+
+  # Error handling
+  error do |lane, exception|
+    slack(
+      message: "Failed to deploy FAMAPP iOS in lane #{lane}: #{exception.message}",
+      success: false
+    ) if ENV["SLACK_URL"]
+  end
+
+  after_all do |lane|
+    # Clean up
+    clean_build_artifacts
+    
+    # Send success notification for specific lanes
+    case lane
+    when :beta
+      puts "✅ Successfully uploaded to TestFlight"
+    when :release
+      puts "✅ Successfully uploaded to App Store"
+    when :ci
+      puts "✅ CI checks passed"
+    end
+  end
+end
+
+# Custom actions
+def setup_keychain
+  create_keychain(
+    name: "fastlane_tmp_keychain",
+    password: "temp_password",
+    default_keychain: true,
+    unlock: true,
+    timeout: 3600,
+    lock_when_sleeps: false
+  )
+end
+
+def cleanup_keychain
+  delete_keychain(name: "fastlane_tmp_keychain") if File.exist? File.expand_path("~/Library/Keychains/fastlane_tmp_keychain-db")
+end

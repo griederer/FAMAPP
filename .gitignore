@@ -1,5 +1,5 @@
 # Dependencies
-/node_modules
+node_modules/
 /.pnp
 .pnp.js
 
@@ -9,6 +9,8 @@
 # Production
 /build
 /dist
+packages/*/dist
+packages/*/build
 
 # Misc
 .DS_Store
@@ -26,7 +28,8 @@ lerna-debug.log*
 
 # Editor directories and files
 .idea
-.vscode
+.vscode/*
+!.vscode/extensions.json
 *.swp
 *.swo
 *~
@@ -43,6 +46,7 @@ pubsub-debug.log
 # Environment variables
 .env
 .env.production
+packages/*/.env
 
 # TypeScript
 *.tsbuildinfo
@@ -58,10 +62,11 @@ pubsub-debug.log
 
 # Yarn
 yarn.lock
-.yarn/cache
-.yarn/unplugged
-.yarn/build-state.yml
-.yarn/install-state.gz
+.yarn/*
+!.yarn/releases
+!.yarn/plugins
+!.yarn/sdks
+!.yarn/versions
 
 # pnpm
 pnpm-lock.yaml
@@ -69,3 +74,48 @@ pnpm-lock.yaml
 # Temporary files
 *.tmp
 *.temp
+
+# Mobile specific - iOS
+*.pbxuser
+!default.pbxuser
+*.mode1v3
+!default.mode1v3
+*.mode2v3
+!default.mode2v3
+*.perspectivev3
+!default.perspectivev3
+xcuserdata
+*.xccheckout
+*.moved-aside
+DerivedData
+*.hmap
+*.ipa
+*.xcuserstate
+ios/.xcode.env.local
+packages/mobile/ios/Pods/
+
+# Mobile specific - Android
+*.iml
+.gradle
+local.properties
+*.hprof
+packages/mobile/android/.gradle/
+packages/mobile/android/app/build/
+packages/mobile/android/build/
+/captures
+.externalNativeBuild
+.cxx
+*.apk
+output.json
+
+# Buck
+buck-out/
+\.buckd/
+*.keystore
+!debug.keystore
+
+# Fastlane
+*/fastlane/report.xml
+*/fastlane/Preview.html
+*/fastlane/screenshots
+*/fastlane/test_output

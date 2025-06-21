@@ -1,37 +1,71 @@
 {
-  "name": "famapp",
+  "name": "famapp-monorepo",
+  "version": "1.0.0",
   "private": true,
-  "version": "0.0.1",
-  "type": "module",
+  "description": "FAMAPP - Family organization and management application (monorepo)",
+  "workspaces": [
+    "packages/*"
+  ],
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "lint": "eslint . --ext ts,tsx --report-unused-disable-directives --max-warnings 0",
-    "preview": "vite preview",
-    "test": "vitest",
-    "test:coverage": "vitest --coverage"
-  },
-  "dependencies": {
-    "firebase": "^11.9.1",
-    "react": "^18.2.0",
-    "react-dom": "^18.2.0"
+    "setup": "./scripts/setup-monorepo.sh",
+    "dev": "./scripts/dev.sh",
+    
+    "web:dev": "yarn workspace @famapp/web dev",
+    "web:build": "yarn workspace @famapp/web build",
+    "web:preview": "yarn workspace @famapp/web preview",
+    "web:test": "yarn workspace @famapp/web test",
+    "web:lint": "yarn workspace @famapp/web lint",
+    "web:type-check": "yarn workspace @famapp/web type-check",
+    
+    "mobile:start": "yarn workspace @famapp/mobile start",
+    "mobile:ios": "yarn workspace @famapp/mobile ios",
+    "mobile:android": "yarn workspace @famapp/mobile android",
+    "mobile:test": "yarn workspace @famapp/mobile test",
+    "mobile:lint": "yarn workspace @famapp/mobile lint",
+    "mobile:pods": "cd packages/mobile/ios && pod install",
+    "mobile:clean": "cd packages/mobile && yarn start --reset-cache",
+    "mobile:dev": "cd packages/mobile && ./scripts/mobile-dev.sh",
+    
+    "shared:build": "yarn workspace @famapp/shared build",
+    "shared:test": "yarn workspace @famapp/shared test",
+    "shared:lint": "yarn workspace @famapp/shared lint",
+    
+    "build": "yarn shared:build && yarn web:build",
+    "test": "yarn shared:test && yarn web:test && yarn mobile:test",
+    "test:ci": "yarn test --watchAll=false --coverage",
+    "lint": "yarn shared:lint && yarn web:lint && yarn mobile:lint",
+    "type-check": "yarn workspace @famapp/shared type-check && yarn web:type-check && yarn workspace @famapp/mobile type-check",
+    
+    "clean": "yarn workspaces foreach -A run clean && rm -rf node_modules",
+    "reset": "./scripts/dev.sh reset",
+    "firebase-check": "cd packages/mobile && node setup.js"
   },
   "devDependencies": {
-    "@testing-library/jest-dom": "^6.0.0",
-    "@testing-library/react": "^14.0.0",
-    "@testing-library/user-event": "^14.0.0",
-    "@types/react": "^18.2.66",
-    "@types/react-dom": "^18.2.22",
-    "@typescript-eslint/eslint-plugin": "^7.2.0",
-    "@typescript-eslint/parser": "^7.2.0",
-    "@vitejs/plugin-react": "^4.2.1",
-    "@vitest/coverage-v8": "^1.6.0",
-    "eslint": "^8.57.0",
-    "eslint-plugin-react-hooks": "^4.6.0",
-    "eslint-plugin-react-refresh": "^0.4.6",
-    "jsdom": "^24.0.0",
-    "typescript": "^5.2.2",
-    "vite": "^5.2.0",
-    "vitest": "^1.6.0"
-  }
+    "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "yarn": ">=1.22.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "your-repository-url"
+  },
+  "keywords": [
+    "family",
+    "organization",
+    "todo",
+    "calendar",
+    "grocery",
+    "documents",
+    "firebase",
+    "react",
+    "react-native",
+    "typescript",
+    "monorepo"
+  ],
+  "author": "FAMAPP Team",
+  "license": "MIT",
+  "packageManager": "yarn@1.22.19"
 }
