@@ -183,7 +183,7 @@ class TodoService implements ITodoService {
         todos = todos.filter(todo =>
           todo.title.toLowerCase().includes(searchTerm) ||
           (todo.description && todo.description.toLowerCase().includes(searchTerm)) ||
-          todo.tags.some(tag => tag.toLowerCase().includes(searchTerm))
+          todo.tags?.some(tag => tag.toLowerCase().includes(searchTerm))
         );
       }
 
@@ -320,7 +320,7 @@ class TodoService implements ITodoService {
           todos = todos.filter(todo =>
             todo.title.toLowerCase().includes(searchTerm) ||
             (todo.description && todo.description.toLowerCase().includes(searchTerm)) ||
-            todo.tags.some(tag => tag.toLowerCase().includes(searchTerm))
+            todo.tags?.some(tag => tag.toLowerCase().includes(searchTerm))
           );
         }
 

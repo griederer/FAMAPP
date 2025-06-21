@@ -8,3 +8,4 @@ export * from './eventService';
 export * from './groceryService';
 export * from './documentService';
 export * from './autoArchiveService';
+export * from './aiService';

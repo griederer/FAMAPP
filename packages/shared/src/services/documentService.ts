@@ -24,7 +24,9 @@ import type {
   FamilyDocument, 
   CreateDocumentData, 
   UpdateDocumentData,
-  DocumentService as IDocumentService,
+  DocumentService as IDocumentService
+} from '../types/document';
+import { 
   MAX_FILE_SIZE,
   ALLOWED_FILE_TYPES
 } from '../types/document';
