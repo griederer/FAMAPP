@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAI } from '../../hooks/useAI';
 import { useI18n } from '../../hooks/useI18n';
-import { DataAggregationService, type AggregatedFamilyData } from '@famapp/shared';
+import { DataAggregationService, type AggregatedFamilyData, type ConversationMessage } from '@famapp/shared';
 import { Button } from '../ui/Button';
 import { LoadingState } from '../ui/LoadingState';
 import './ChatInterface.css';
@@ -35,6 +35,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
   const [currentFamilyData, setCurrentFamilyData] = useState<AggregatedFamilyData | null>(familyData || null);
+  const [conversationHistory, setConversationHistory] = useState<ConversationMessage[]>([]);
   
   // Refs for auto-scroll and focus
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -81,8 +82,16 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
     setIsTyping(true);
     
     try {
-      // Get AI response
-      const response = await askQuestion(inputValue.trim(), currentFamilyData);
+      // Convert chat messages to conversation history format
+      const history: ConversationMessage[] = messages.map(msg => ({
+        id: msg.id,
+        role: msg.type === 'user' ? 'user' : 'assistant',
+        content: msg.content,
+        timestamp: msg.timestamp
+      }));
+      
+      // Get AI response with conversation history
+      const response = await askQuestion(inputValue.trim(), currentFamilyData, history);
       
       const assistantMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
@@ -92,6 +101,24 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
       };
       
       setMessages(prev => [...prev, assistantMessage]);
+      
+      // Update conversation history
+      const newHistory: ConversationMessage[] = [
+        ...history,
+        {
+          id: userMessage.id,
+          role: 'user',
+          content: userMessage.content,
+          timestamp: userMessage.timestamp
+        },
+        {
+          id: assistantMessage.id,
+          role: 'assistant',
+          content: assistantMessage.content,
+          timestamp: assistantMessage.timestamp
+        }
+      ];
+      setConversationHistory(newHistory.slice(-10)); // Keep last 10 messages
     } catch (error) {
       const errorMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
@@ -117,6 +144,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
   // Clear chat history
   const handleClearChat = () => {
     setMessages([]);
+    setConversationHistory([]);
   };
   
   // Suggested questions

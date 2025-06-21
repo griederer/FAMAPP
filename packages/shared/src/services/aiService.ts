@@ -6,7 +6,9 @@ import type {
   AggregatedFamilyData,
   AIRequestType,
   TokenUsage,
-  AIResponseMetadata
+  AIResponseMetadata,
+  ConversationMessage,
+  FollowUpContext
 } from '../types/ai';
 
 // Configuration interface for AI service
@@ -130,8 +132,17 @@ export class AIService {
 
   // Answer conversational questions about family data
   async answerQuestion(question: string, familyData: AggregatedFamilyData): Promise<AIResponse> {
-    const prompt = this.buildQuestionPrompt(question, familyData);
-    const context = this.createEnhancedContext(familyData, question);
+    return this.answerQuestionWithHistory(question, familyData, []);
+  }
+
+  // Answer questions with conversation history for context continuity
+  async answerQuestionWithHistory(
+    question: string, 
+    familyData: AggregatedFamilyData,
+    conversationHistory: ConversationMessage[] = []
+  ): Promise<AIResponse> {
+    const prompt = this.buildQuestionPromptWithHistory(question, familyData, conversationHistory);
+    const context = this.createEnhancedContextWithHistory(familyData, question, conversationHistory);
     
     return this.generateResponse({
       prompt,
@@ -189,18 +200,42 @@ Respond in a natural, conversational tone as if speaking directly to the family.
 
   // Build question-answering prompt with enhanced context analysis
   private buildQuestionPrompt(question: string, familyData: AggregatedFamilyData): string {
+    return this.buildQuestionPromptWithHistory(question, familyData, []);
+  }
+
+  // Build question-answering prompt with conversation history
+  private buildQuestionPromptWithHistory(
+    question: string, 
+    familyData: AggregatedFamilyData,
+    conversationHistory: ConversationMessage[]
+  ): string {
     const questionType = this.analyzeQuestionType(question);
     const relevantData = this.extractRelevantDataForQuestion(question, familyData);
     const timeContext = this.createTimeContext();
+    const followUpContext = this.analyzeFollowUpContext(question, conversationHistory);
     
-    return `
-You are a helpful family assistant AI with deep understanding of family organization patterns. 
+    let conversationSection = '';
+    if (conversationHistory.length > 0) {
+      conversationSection = `
+CONVERSATION HISTORY:
+${this.formatConversationHistory(conversationHistory)}
 
-QUESTION: ${question}
+FOLLOW-UP ANALYSIS:
+- Is follow-up question: ${followUpContext.isFollowUp}
+- References previous topic: ${followUpContext.referencesPrevious}
+- Context continuation: ${followUpContext.contextType}
+- Previous focus areas: ${followUpContext.previousFocusAreas.join(', ')}
+`;
+    }
+
+    return `
+You are a helpful family assistant AI with deep understanding of family organization patterns and conversation continuity.
+
+CURRENT QUESTION: ${question}
 
 QUESTION TYPE: ${questionType.type} (${questionType.confidence}% confidence)
 FOCUS AREAS: ${questionType.focusAreas.join(', ')}
-
+${conversationSection}
 TIME CONTEXT:
 - Current time: ${timeContext.currentTime.toLocaleString()}
 - Day of week: ${this.getDayName(timeContext.dayOfWeek)}
@@ -212,15 +247,21 @@ ${JSON.stringify(relevantData, null, 2)}
 
 ANSWERING GUIDELINES:
 1. Be conversational and warm, like a family friend
-2. Focus on actionable insights rather than just data
-3. Consider time context (e.g., "this week", "today", "upcoming")
-4. If trends are relevant, mention patterns you observe
-5. Be specific with numbers, dates, and family member names
-6. If information is missing, suggest what would be helpful to know
-7. For productivity questions, consider workload balance across family
-8. For scheduling questions, consider conflicts and time management
+2. Maintain conversation continuity - reference previous questions when relevant
+3. Use follow-up context to provide more targeted responses
+4. Focus on actionable insights rather than just data
+5. Consider time context (e.g., "this week", "today", "upcoming")
+6. If trends are relevant, mention patterns you observe
+7. Be specific with numbers, dates, and family member names
+8. For follow-up questions, build upon previous answers
+9. If clarification is needed, refer to what was discussed before
+10. For productivity questions, consider workload balance across family
+11. For scheduling questions, consider conflicts and time management
 
-Provide a helpful, accurate answer that demonstrates understanding of family dynamics and organization needs.
+${conversationHistory.length > 0 ? 
+  'Build upon the conversation context and provide a natural continuation of our discussion.' :
+  'Provide a helpful, accurate answer that demonstrates understanding of family dynamics and organization needs.'
+}
 `;
   }
 
@@ -529,6 +570,122 @@ Format your response as brief, actionable alerts. Use a supportive but direct to
   private getDayName(dayNumber: number): string {
     const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     return days[dayNumber] || 'Unknown';
+  }
+
+  // Analyze follow-up context for conversation continuity
+  private analyzeFollowUpContext(
+    question: string, 
+    conversationHistory: ConversationMessage[]
+  ): FollowUpContext {
+    if (conversationHistory.length === 0) {
+      return {
+        isFollowUp: false,
+        referencesPrevious: false,
+        contextType: 'new_conversation',
+        previousFocusAreas: []
+      };
+    }
+
+    const lowerQuestion = question.toLowerCase();
+    const followUpIndicators = [
+      'what about', 'and what', 'also', 'additionally', 'furthermore',
+      'can you also', 'tell me more', 'more details', 'expand on',
+      'elaborate', 'that', 'those', 'they', 'it', 'this', 'these'
+    ];
+
+    const clarificationIndicators = [
+      'why', 'how', 'when', 'where', 'what do you mean',
+      'can you explain', 'clarify', 'specify', 'details about'
+    ];
+
+    const contrastIndicators = [
+      'instead', 'rather', 'but what about', 'compared to',
+      'difference', 'versus', 'vs', 'alternatively'
+    ];
+
+    const isFollowUp = followUpIndicators.some(indicator => lowerQuestion.includes(indicator));
+    const isClarification = clarificationIndicators.some(indicator => lowerQuestion.includes(indicator));
+    const isContrast = contrastIndicators.some(indicator => lowerQuestion.includes(indicator));
+
+    // Analyze previous focus areas
+    const previousFocusAreas: string[] = [];
+    const recentMessages = conversationHistory.slice(-4); // Last 4 messages
+    
+    recentMessages.forEach(message => {
+      if (message.role === 'user') {
+        const questionType = this.analyzeQuestionType(message.content);
+        previousFocusAreas.push(...questionType.focusAreas);
+      }
+    });
+
+    let contextType: 'new_conversation' | 'follow_up' | 'clarification' | 'topic_change' | 'continuation';
+    
+    if (isClarification) {
+      contextType = 'clarification';
+    } else if (isContrast) {
+      contextType = 'topic_change';
+    } else if (isFollowUp) {
+      contextType = 'follow_up';
+    } else {
+      // Check if current question relates to previous topics
+      const currentQuestionType = this.analyzeQuestionType(question);
+      const hasOverlap = currentQuestionType.focusAreas.some(area => 
+        previousFocusAreas.includes(area)
+      );
+      contextType = hasOverlap ? 'continuation' : 'topic_change';
+    }
+
+    return {
+      isFollowUp: isFollowUp || isClarification,
+      referencesPrevious: isFollowUp || isClarification || contextType === 'continuation',
+      contextType,
+      previousFocusAreas: [...new Set(previousFocusAreas)] // Remove duplicates
+    };
+  }
+
+  // Format conversation history for prompt inclusion
+  private formatConversationHistory(conversationHistory: ConversationMessage[]): string {
+    const recentHistory = conversationHistory.slice(-6); // Last 6 messages for context
+    
+    return recentHistory
+      .map(message => {
+        const timestamp = new Date(message.timestamp).toLocaleTimeString();
+        const role = message.role === 'user' ? 'Family Member' : 'Assistant';
+        return `[${timestamp}] ${role}: ${message.content}`;
+      })
+      .join('\n');
+  }
+
+  // Create enhanced context with conversation history
+  private createEnhancedContextWithHistory(
+    familyData: AggregatedFamilyData, 
+    question: string,
+    conversationHistory: ConversationMessage[]
+  ): FamilyContext {
+    const timeContext = this.createTimeContext();
+    const questionAnalysis = this.analyzeQuestionType(question);
+    const followUpContext = this.analyzeFollowUpContext(question, conversationHistory);
+    
+    return {
+      familyData,
+      userPreferences: {
+        language: 'en',
+        timezone: timeContext.timezone,
+        preferredTimeFormat: '12h'
+      },
+      sessionContext: {
+        currentQuestion: question,
+        questionType: questionAnalysis.type,
+        focusAreas: questionAnalysis.focusAreas,
+        requestTimestamp: new Date(),
+        conversationHistory: conversationHistory.slice(-10), // Keep last 10 messages
+        previousQuestions: conversationHistory
+          .filter(msg => msg.role === 'user')
+          .slice(-5) // Last 5 user questions
+          .map(msg => msg.content)
+      },
+      timeContext
+    };
   }
 
   // Get current configuration

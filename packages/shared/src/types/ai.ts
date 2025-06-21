@@ -333,6 +333,14 @@ export interface ConversationMessage {
   context?: Partial<FamilyContext>;
 }
 
+// Follow-up context for conversation continuity
+export interface FollowUpContext {
+  isFollowUp: boolean;
+  referencesPrevious: boolean;
+  contextType: 'new_conversation' | 'follow_up' | 'clarification' | 'topic_change' | 'continuation';
+  previousFocusAreas: string[];
+}
+
 // Notification settings
 export interface NotificationSettings {
   enabled: boolean;

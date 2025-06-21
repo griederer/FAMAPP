@@ -1,6 +1,6 @@
 // React hook for AI service integration
 import { useState, useEffect, useCallback } from 'react';
-import { getAIService, type AIService, type AggregatedFamilyData, type AIResponse } from '@famapp/shared';
+import { getAIService, type AIService, type AggregatedFamilyData, type AIResponse, type ConversationMessage } from '@famapp/shared';
 import { checkAIServiceHealth } from '../config/ai';
 
 // Hook return type
@@ -10,7 +10,7 @@ interface UseAIReturn {
   isLoading: boolean;
   error: string | null;
   generateSummary: (familyData: AggregatedFamilyData) => Promise<AIResponse | null>;
-  askQuestion: (question: string, familyData: AggregatedFamilyData) => Promise<AIResponse | null>;
+  askQuestion: (question: string, familyData: AggregatedFamilyData, conversationHistory?: ConversationMessage[]) => Promise<AIResponse | null>;
   checkHealth: () => Promise<boolean>;
 }
 
@@ -74,8 +74,8 @@ export function useAI(): UseAIReturn {
     }
   }, [aiService, isHealthy]);
 
-  // Ask a question with family data context
-  const askQuestion = useCallback(async (question: string, familyData: AggregatedFamilyData): Promise<AIResponse | null> => {
+  // Ask a question with family data context and optional conversation history
+  const askQuestion = useCallback(async (question: string, familyData: AggregatedFamilyData, conversationHistory?: ConversationMessage[]): Promise<AIResponse | null> => {
     if (!aiService || !isHealthy) {
       setError('AI Service is not available');
       return null;
@@ -83,7 +83,10 @@ export function useAI(): UseAIReturn {
 
     try {
       setError(null);
-      const response = await aiService.answerQuestion(question, familyData);
+      // Use conversation history if provided, otherwise use simple question answering
+      const response = conversationHistory && conversationHistory.length > 0
+        ? await aiService.answerQuestionWithHistory(question, familyData, conversationHistory)
+        : await aiService.answerQuestion(question, familyData);
       return response;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to process question';
