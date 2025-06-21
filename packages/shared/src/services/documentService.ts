@@ -243,7 +243,9 @@ class DocumentService implements IDocumentService {
     const user = authService.getCurrentUser();
     if (!user) {
       callback([]);
-      return () => {};
+      return () => {
+        // Cleanup function for when user is not authenticated
+      };
     }
 
     const q = query(

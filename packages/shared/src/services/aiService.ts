@@ -1,4 +1,13 @@
 import Anthropic from '@anthropic-ai/sdk';
+import type {
+  AIRequest,
+  AIResponse,
+  FamilyContext,
+  AggregatedFamilyData,
+  AIRequestType,
+  TokenUsage,
+  AIResponseMetadata
+} from '../types/ai';
 
 // Configuration interface for AI service
 export interface AIConfig {
@@ -6,25 +15,6 @@ export interface AIConfig {
   model?: string;
   maxTokens?: number;
   temperature?: number;
-}
-
-// Request interface for AI prompts
-export interface AIRequest {
-  prompt: string;
-  context?: any;
-  maxTokens?: number;
-  temperature?: number;
-}
-
-// Response interface for AI completions
-export interface AIResponse {
-  content: string;
-  usage?: {
-    inputTokens: number;
-    outputTokens: number;
-  };
-  model: string;
-  timestamp: Date;
 }
 
 // Error types for AI service
@@ -98,53 +88,69 @@ export class AIService {
         console.warn(`AI response took ${duration}ms - consider optimization`);
       }
 
+      const usage: TokenUsage = {
+        inputTokens: response.usage.input_tokens,
+        outputTokens: response.usage.output_tokens,
+        totalTokens: response.usage.input_tokens + response.usage.output_tokens,
+        estimatedCost: this.calculateCost(response.usage.input_tokens + response.usage.output_tokens)
+      };
+
+      const metadata: AIResponseMetadata = {
+        processingTime: duration,
+        dataFreshness: new Date(),
+        relevantItems: request.context ? this.extractRelevantItems(request.context) : undefined
+      };
+
       return {
         content: content.text,
-        usage: {
-          inputTokens: response.usage.input_tokens,
-          outputTokens: response.usage.output_tokens,
-        },
+        type: request.type || 'general_chat',
+        usage,
         model: response.model,
         timestamp: new Date(),
+        confidence: this.calculateConfidence(content.text),
+        metadata
       };
     } catch (error) {
       return this.handleError(error);
     }
   }
 
-  // Generate family dashboard summary
-  async generateFamilySummary(familyData: any): Promise<AIResponse> {
+  // Generate family dashboard summary with proper typing
+  async generateFamilySummary(familyData: AggregatedFamilyData): Promise<AIResponse> {
     const prompt = this.buildFamilySummaryPrompt(familyData);
     
     return this.generateResponse({
       prompt,
-      context: familyData,
+      context: { familyData, userPreferences: undefined, sessionContext: undefined, timeContext: this.createTimeContext() },
       maxTokens: 800,
       temperature: 0.6,
+      type: 'family_summary'
     });
   }
 
   // Answer conversational questions about family data
-  async answerQuestion(question: string, familyData: any): Promise<AIResponse> {
+  async answerQuestion(question: string, familyData: AggregatedFamilyData): Promise<AIResponse> {
     const prompt = this.buildQuestionPrompt(question, familyData);
     
     return this.generateResponse({
       prompt,
-      context: { question, familyData },
+      context: { familyData, userPreferences: undefined, sessionContext: undefined, timeContext: this.createTimeContext() },
       maxTokens: 600,
       temperature: 0.5,
+      type: 'question_answer'
     });
   }
 
   // Generate smart alerts and recommendations
-  async generateAlerts(familyData: any): Promise<AIResponse> {
+  async generateAlerts(familyData: AggregatedFamilyData): Promise<AIResponse> {
     const prompt = this.buildAlertsPrompt(familyData);
     
     return this.generateResponse({
       prompt,
-      context: familyData,
+      context: { familyData, userPreferences: undefined, sessionContext: undefined, timeContext: this.createTimeContext() },
       maxTokens: 400,
       temperature: 0.4,
+      type: 'alerts_generation'
     });
   }
 
@@ -160,7 +166,7 @@ export class AIService {
   }
 
   // Build family summary prompt
-  private buildFamilySummaryPrompt(familyData: any): string {
+  private buildFamilySummaryPrompt(familyData: AggregatedFamilyData): string {
     return `
 You are a helpful family assistant AI. Generate a warm, friendly summary of the family's current status based on the provided data.
 
@@ -181,7 +187,7 @@ Respond in a natural, conversational tone as if speaking directly to the family.
   }
 
   // Build question-answering prompt
-  private buildQuestionPrompt(question: string, familyData: any): string {
+  private buildQuestionPrompt(question: string, familyData: AggregatedFamilyData): string {
     return `
 You are a helpful family assistant AI. Answer the following question about the family's data.
 
@@ -197,7 +203,7 @@ Keep your response conversational and friendly.
   }
 
   // Build alerts and recommendations prompt
-  private buildAlertsPrompt(familyData: any): string {
+  private buildAlertsPrompt(familyData: AggregatedFamilyData): string {
     return `
 You are a helpful family assistant AI. Analyze the family data and identify:
 
@@ -283,6 +289,7 @@ Format your response as brief, actionable alerts. Use a supportive but direct to
       const response = await this.generateResponse({
         prompt: 'Respond with "OK" if you can process this message.',
         maxTokens: 10,
+        type: 'general_chat'
       });
       
       return response.content.trim().toLowerCase().includes('ok');
@@ -290,6 +297,70 @@ Format your response as brief, actionable alerts. Use a supportive but direct to
       console.error('AI Service health check failed:', error);
       return false;
     }
+  }
+
+  // Calculate estimated cost for token usage (Claude pricing)
+  private calculateCost(totalTokens: number): number {
+    // Claude 3 Haiku pricing: $0.25 per million input tokens, $1.25 per million output tokens
+    // Simplified calculation: average $0.75 per million tokens
+    return (totalTokens / 1_000_000) * 0.75;
+  }
+
+  // Calculate confidence score based on response characteristics
+  private calculateConfidence(content: string): number {
+    // Simple heuristic: longer, structured responses tend to be more confident
+    const length = content.length;
+    const hasStructure = content.includes('1.') || content.includes('•') || content.includes('-');
+    const hasUncertainty = content.toLowerCase().includes('not sure') || 
+                          content.toLowerCase().includes('might') ||
+                          content.toLowerCase().includes('possibly');
+    
+    let confidence = 0.8; // base confidence
+    
+    if (length > 200) confidence += 0.1;
+    if (hasStructure) confidence += 0.05;
+    if (hasUncertainty) confidence -= 0.15;
+    
+    return Math.max(0.1, Math.min(1.0, confidence));
+  }
+
+  // Extract relevant item IDs from context for metadata
+  private extractRelevantItems(context: FamilyContext): string[] {
+    const items: string[] = [];
+    
+    if (context.familyData) {
+      // Extract recent todo IDs
+      context.familyData.todos.pending.slice(0, 5).forEach(todo => items.push(todo.id));
+      context.familyData.todos.overdue.forEach(todo => items.push(todo.id));
+      
+      // Extract upcoming event IDs
+      context.familyData.events.upcoming.slice(0, 3).forEach(event => items.push(event.id));
+      
+      // Extract urgent grocery IDs
+      context.familyData.groceries.urgentItems.forEach(item => items.push(item.id));
+    }
+    
+    return items;
+  }
+
+  // Create time context for AI requests
+  private createTimeContext() {
+    const now = new Date();
+    const hour = now.getHours();
+    
+    let timeOfDay: 'morning' | 'afternoon' | 'evening' | 'night';
+    if (hour < 12) timeOfDay = 'morning';
+    else if (hour < 17) timeOfDay = 'afternoon';
+    else if (hour < 21) timeOfDay = 'evening';
+    else timeOfDay = 'night';
+    
+    return {
+      currentTime: now,
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      dayOfWeek: now.getDay(),
+      isWeekend: now.getDay() === 0 || now.getDay() === 6,
+      timeOfDay
+    };
   }
 
   // Get current configuration

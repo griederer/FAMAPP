@@ -4,9 +4,14 @@ import {
   createAIService,
   setAIService,
   getAIService,
-  type AIConfig,
-  type AIRequest
+  type AIConfig
 } from '../src/services/aiService';
+import type { 
+  AIRequest, 
+  AggregatedFamilyData, 
+  FamilyContext,
+  AIRequestType 
+} from '../src/types/ai';
 
 // Mock Anthropic SDK
 jest.mock('@anthropic-ai/sdk', () => {
@@ -23,6 +28,61 @@ jest.mock('@anthropic-ai/sdk', () => {
 import Anthropic from '@anthropic-ai/sdk';
 
 const MockedAnthropic = Anthropic as jest.MockedClass<typeof Anthropic>;
+
+// Helper functions to create test data
+function createMockAggregatedFamilyData(): AggregatedFamilyData {
+  return {
+    todos: {
+      pending: [],
+      overdue: [],
+      completedRecent: [],
+      totalCount: 0,
+      completionRate: 0,
+      memberStats: []
+    },
+    events: {
+      upcoming: [],
+      thisWeek: [],
+      nextWeek: [],
+      totalCount: 0,
+      memberEvents: []
+    },
+    groceries: {
+      pending: [],
+      urgentItems: [],
+      completedRecent: [],
+      totalCount: 0,
+      completionRate: 0,
+      categoryStats: []
+    },
+    documents: {
+      recent: [],
+      totalCount: 0,
+      typeStats: []
+    },
+    familyMembers: [],
+    summary: {
+      generatedAt: new Date(),
+      dataFreshness: {
+        todos: new Date(),
+        events: new Date(),
+        groceries: new Date(),
+        documents: new Date(),
+        overallStatus: 'fresh'
+      },
+      totalActiveTasks: 0,
+      urgentItemsCount: 0,
+      healthScore: 100,
+      weeklyTrends: {
+        todoCompletion: { currentWeek: 0, previousWeek: 0, change: 0, trend: 'stable' },
+        eventScheduling: { currentWeek: 0, previousWeek: 0, change: 0, trend: 'stable' },
+        groceryShopping: { currentWeek: 0, previousWeek: 0, change: 0, trend: 'stable' },
+        documentActivity: { currentWeek: 0, previousWeek: 0, change: 0, trend: 'stable' }
+      },
+      recommendations: []
+    }
+  };
+}
 
 describe('AIService', () => {
   let mockAnthropicInstance: any;
@@ -164,7 +224,16 @@ describe('AIService', () => {
 
       mockAnthropicInstance.messages.create.mockResolvedValue(mockResponse);
 
-      const context = { todos: ['Task 1', 'Task 2'] };
+      const context: FamilyContext = {
+        familyData: createMockAggregatedFamilyData(),
+        timeContext: {
+          currentTime: new Date(),
+          timezone: 'UTC',
+          dayOfWeek: 1,
+          isWeekend: false,
+          timeOfDay: 'morning'
+        }
+      };
       await aiService.generateResponse({ 
         prompt: 'Test prompt',
         context 
@@ -246,11 +315,19 @@ describe('AIService', () => {
 
       mockAnthropicInstance.messages.create.mockResolvedValue(mockResponse);
 
-      const familyData = {
-        todos: [{ title: 'Buy groceries', assignedTo: 'Mom' }],
-        events: [{ title: 'School meeting', date: '2024-01-15' }],
-        groceries: [{ item: 'Milk', completed: false }]
-      };
+      const familyData = createMockAggregatedFamilyData();
+      familyData.todos.pending = [{ 
+        id: 'todo1', 
+        title: 'Buy groceries', 
+        assignedTo: 'gonzalo',
+        completed: false,
+        createdBy: 'test',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        description: '',
+        priority: 'medium',
+        tags: []
+      } as any];
 
       const result = await aiService.generateFamilySummary(familyData);
 
@@ -286,9 +363,18 @@ describe('AIService', () => {
       mockAnthropicInstance.messages.create.mockResolvedValue(mockResponse);
 
       const question = 'What events does Mom have this week?';
-      const familyData = {
-        events: [{ title: 'PTA meeting', assignedTo: 'Mom', date: '2024-01-15' }]
-      };
+      const familyData = createMockAggregatedFamilyData();
+      familyData.events.upcoming = [{
+        id: 'event1',
+        title: 'PTA meeting',
+        assignedTo: 'mpaz',
+        startDate: new Date('2024-01-15'),
+        endDate: new Date('2024-01-15'),
+        allDay: false,
+        createdBy: 'test',
+        createdAt: new Date(),
+        updatedAt: new Date()
+      } as any];
 
       const result = await aiService.answerQuestion(question, familyData);
 
@@ -321,9 +407,20 @@ describe('AIService', () => {
 
       mockAnthropicInstance.messages.create.mockResolvedValue(mockResponse);
 
-      const familyData = {
-        todos: [{ title: 'Overdue task', dueDate: '2024-01-01', completed: false }]
-      };
+      const familyData = createMockAggregatedFamilyData();
+      familyData.todos.overdue = [{
+        id: 'todo1',
+        title: 'Overdue task',
+        dueDate: new Date('2024-01-01'),
+        completed: false,
+        assignedTo: 'gonzalo',
+        createdBy: 'test',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        description: '',
+        priority: 'high',
+        tags: []
+      } as any];
 
       const result = await aiService.generateAlerts(familyData);
 

@@ -169,7 +169,7 @@ class EventService implements IEventService {
   }
 
   // Get upcoming events
-  async getUpcomingEvents(limit: number = 5): Promise<CalendarEvent[]> {
+  async getUpcomingEvents(limit = 5): Promise<CalendarEvent[]> {
     try {
       const now = new Date();
       const q = query(

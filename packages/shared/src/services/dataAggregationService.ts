@@ -15,90 +15,21 @@ import type { Todo } from '../types/todo';
 import type { CalendarEvent } from '../types/calendar';
 import type { GroceryItem } from '../types/grocery';
 import type { FamilyDocument } from '../types/document';
+import type {
+  AggregatedFamilyData,
+  MemberEventStats,
+  GroceryCategoryStats,
+  DocumentTypeStats,
+  DataFreshness,
+  FamilyMemberInfo,
+  MemberTodoStats,
+  WeeklyTrends,
+  EventType,
+  DocumentType
+} from '../types/ai';
 
-// Aggregated family data interface for AI processing
-export interface AggregatedFamilyData {
-  todos: {
-    pending: Todo[];
-    overdue: Todo[];
-    completedRecent: Todo[];
-    totalCount: number;
-    completionRate: number;
-    memberStats: MemberStats[];
-  };
-  events: {
-    upcoming: CalendarEvent[];
-    thisWeek: CalendarEvent[];
-    nextWeek: CalendarEvent[];
-    totalCount: number;
-    memberEvents: MemberEventStats[];
-  };
-  groceries: {
-    pending: GroceryItem[];
-    urgentItems: GroceryItem[];
-    completedRecent: GroceryItem[];
-    totalCount: number;
-    completionRate: number;
-    categoryStats: CategoryStats[];
-  };
-  documents: {
-    recent: FamilyDocument[];
-    totalCount: number;
-    typeStats: DocumentTypeStats[];
-  };
-  familyMembers: MemberInfo[];
-  summary: {
-    generatedAt: Date;
-    dataFreshness: DataFreshness;
-    totalActiveTasks: number;
-    urgentItemsCount: number;
-    healthScore: number;
-  };
-}
-
-// Supporting interfaces for aggregated data
-export interface MemberInfo {
-  id: FamilyMember;
-  name: string;
-  email: string;
-}
-
-export interface MemberStats {
-  member: MemberInfo;
-  pendingTodos: number;
-  overdueTodos: number;
-  completedThisWeek: number;
-  completionRate: number;
-  productivity: 'high' | 'medium' | 'low';
-}
-
-export interface MemberEventStats {
-  member: MemberInfo;
-  upcomingEvents: number;
-  eventsThisWeek: number;
-  eventTypes: string[];
-}
-
-export interface CategoryStats {
-  category: string;
-  pendingItems: number;
-  totalItems: number;
-  urgentItems: number;
-}
-
-export interface DocumentTypeStats {
-  type: string;
-  count: number;
-  recentCount: number;
-}
-
-export interface DataFreshness {
-  todos: Date;
-  events: Date;
-  groceries: Date;
-  documents: Date;
-  overallStatus: 'fresh' | 'stale' | 'outdated';
-}
+// Re-export interfaces from AI types for backward compatibility
+export type { AggregatedFamilyData, MemberEventStats, GroceryCategoryStats as CategoryStats, DocumentTypeStats, DataFreshness, FamilyMemberInfo as MemberInfo, MemberTodoStats as MemberStats, WeeklyTrends };
 
 // Configuration for data aggregation
 export interface AggregationConfig {
@@ -409,13 +340,13 @@ export class DataAggregationService {
   }
 
   // Get family members list
-  private async getFamilyMembers(): Promise<MemberInfo[]> {
+  private async getFamilyMembers(): Promise<FamilyMemberInfo[]> {
     try {
       // Note: Family members are typically stored in user profile or separate collection
       // For now, we'll extract from existing data or use a default set
       // This should be updated based on your actual family member storage strategy
       
-      const familyMembers: MemberInfo[] = [
+      const familyMembers: FamilyMemberInfo[] = [
         { id: 'gonzalo', name: 'Gonzalo', email: 'gonzalo@famapp.com' },
         { id: 'mpaz', name: 'Mpaz', email: 'mpaz@famapp.com' },
         { id: 'borja', name: 'Borja', email: 'borja@famapp.com' },
@@ -433,11 +364,11 @@ export class DataAggregationService {
   }
 
   // Calculate member todo statistics
-  private calculateMemberTodoStats(todos: Todo[], recentCutoff: Date): MemberStats[] {
-    const memberMap = new Map<string, MemberStats>();
+  private calculateMemberTodoStats(todos: Todo[], recentCutoff: Date): MemberTodoStats[] {
+    const memberMap = new Map<string, MemberTodoStats>();
 
     // Initialize stats for all family members
-    const familyMembers: MemberInfo[] = [
+    const familyMembers: FamilyMemberInfo[] = [
       { id: 'gonzalo', name: 'Gonzalo', email: 'gonzalo@famapp.com' },
       { id: 'mpaz', name: 'Mpaz', email: 'mpaz@famapp.com' },
       { id: 'borja', name: 'Borja', email: 'borja@famapp.com' },
@@ -500,14 +431,15 @@ export class DataAggregationService {
 
     events.forEach(event => {
       if (event.assignedTo) {
-        const member: MemberInfo = { id: event.assignedTo, name: event.assignedTo, email: '' };
+        const member: FamilyMemberInfo = { id: event.assignedTo, name: event.assignedTo, email: '' };
         
         if (!memberMap.has(event.assignedTo)) {
           memberMap.set(event.assignedTo, {
             member,
             upcomingEvents: 0,
             eventsThisWeek: 0,
-            eventTypes: []
+            eventTypes: [],
+            busyDays: []
           });
         }
 
@@ -516,6 +448,16 @@ export class DataAggregationService {
         
         if (new Date(event.startDate) <= weekEnd) {
           stats.eventsThisWeek++;
+        }
+
+        // Add busy days (dates with events)
+        const eventDate = new Date(event.startDate);
+        const eventDateOnly = new Date(eventDate.getFullYear(), eventDate.getMonth(), eventDate.getDate());
+        const exists = stats.busyDays.some(date => 
+          date.getTime() === eventDateOnly.getTime()
+        );
+        if (!exists) {
+          stats.busyDays.push(eventDateOnly);
         }
 
         // For now, we'll use a simplified event type based on title keywords
@@ -530,8 +472,8 @@ export class DataAggregationService {
   }
 
   // Calculate grocery category statistics
-  private calculateGroceryCategoryStats(groceries: GroceryItem[]): CategoryStats[] {
-    const categoryMap = new Map<string, CategoryStats>();
+  private calculateGroceryCategoryStats(groceries: GroceryItem[]): GroceryCategoryStats[] {
+    const categoryMap = new Map<string, GroceryCategoryStats>();
 
     groceries.forEach(item => {
       const category = item.category || 'Other';
@@ -561,7 +503,7 @@ export class DataAggregationService {
 
   // Calculate document type statistics
   private calculateDocumentTypeStats(documents: FamilyDocument[], recentCutoff: Date): DocumentTypeStats[] {
-    const typeMap = new Map<string, DocumentTypeStats>();
+    const typeMap = new Map<string, { stats: DocumentTypeStats; totalSize: number }>();
 
     documents.forEach(doc => {
       // Infer document type from file extension or name
@@ -569,21 +511,39 @@ export class DataAggregationService {
       
       if (!typeMap.has(type)) {
         typeMap.set(type, {
-          type,
-          count: 0,
-          recentCount: 0
+          stats: {
+            type,
+            count: 0,
+            recentCount: 0,
+            averageSize: 0,
+            lastUploaded: undefined
+          },
+          totalSize: 0
         });
       }
 
-      const stats = typeMap.get(type)!;
-      stats.count++;
+      const entry = typeMap.get(type)!;
+      entry.stats.count++;
+      entry.totalSize += doc.fileSize || 0;
+      
+      // Update last uploaded date
+      const docDate = new Date(doc.createdAt);
+      if (!entry.stats.lastUploaded || docDate > entry.stats.lastUploaded) {
+        entry.stats.lastUploaded = docDate;
+      }
       
       if (new Date(doc.createdAt) >= recentCutoff) {
-        stats.recentCount++;
+        entry.stats.recentCount++;
       }
     });
 
-    return Array.from(typeMap.values()).sort((a, b) => b.count - a.count);
+    // Calculate average sizes and return final stats
+    return Array.from(typeMap.values())
+      .map(entry => ({
+        ...entry.stats,
+        averageSize: entry.stats.count > 0 ? entry.totalSize / entry.stats.count : 0
+      }))
+      .sort((a, b) => b.count - a.count);
   }
 
   // Calculate overall summary statistics
@@ -628,17 +588,27 @@ export class DataAggregationService {
       overallStatus: aggregationTime < 2000 ? 'fresh' : aggregationTime < 5000 ? 'stale' : 'outdated'
     };
 
+    // Create weekly trends placeholder (would be calculated from historical data)
+    const weeklyTrends: WeeklyTrends = {
+      todoCompletion: { currentWeek: todos.completionRate, previousWeek: todos.completionRate, change: 0, trend: 'stable' },
+      eventScheduling: { currentWeek: events.totalCount, previousWeek: events.totalCount, change: 0, trend: 'stable' },
+      groceryShopping: { currentWeek: groceries.completionRate, previousWeek: groceries.completionRate, change: 0, trend: 'stable' },
+      documentActivity: { currentWeek: documents.totalCount, previousWeek: documents.totalCount, change: 0, trend: 'stable' }
+    };
+
     return {
       generatedAt: now,
       dataFreshness,
       totalActiveTasks,
       urgentItemsCount,
-      healthScore
+      healthScore,
+      weeklyTrends,
+      recommendations: [] // Placeholder for AI-generated recommendations
     };
   }
 
   // Helper function to infer event type from title
-  private inferEventType(title: string): string {
+  private inferEventType(title: string): EventType {
     const titleLower = title.toLowerCase();
     
     if (titleLower.includes('school') || titleLower.includes('meeting') || titleLower.includes('pta')) {
@@ -657,7 +627,7 @@ export class DataAggregationService {
   }
 
   // Helper function to infer document type from filename
-  private inferDocumentType(fileName: string): string {
+  private inferDocumentType(fileName: string): DocumentType {
     const extension = fileName.split('.').pop()?.toLowerCase() || '';
     
     if (['pdf'].includes(extension)) {

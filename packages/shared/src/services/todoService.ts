@@ -331,7 +331,9 @@ class TodoService implements ITodoService {
       });
     } catch (error) {
       console.error('Error subscribing to todos:', error);
-      return () => {};
+      return () => {
+        // Cleanup function for error case
+      };
     }
   }
 
