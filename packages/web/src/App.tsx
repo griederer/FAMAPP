@@ -6,10 +6,11 @@ import { I18nProvider } from './context/I18nContext'
 import { ProtectedRoute } from './components/auth/ProtectedRoute'
 import { AppLayout } from './components/layout'
 import { TodoModule, CalendarModule, GroceriesModule, DocumentsModule } from './components/modules'
+import { AIDashboard } from './components/dashboard'
 import { initializeApp } from './utils/initializeApp'
 import { userWhitelistService } from '@famapp/shared'
 import { addBorjaSchoolEvents } from './utils/addBorjaSchoolEvents'
-import type { ModuleId } from '@famapp/shared'
+import type { ModuleId } from './types/navigation'
 
 function App() {
   const [currentModule, setCurrentModule] = useState<ModuleId>('todos');
@@ -68,6 +69,8 @@ function App() {
         return <GroceriesModule />;
       case 'documents':
         return <DocumentsModule />;
+      case 'ai-dashboard':
+        return <AIDashboard />;
       default:
         return <TodoModule />;
     }

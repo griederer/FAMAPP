@@ -35,6 +35,7 @@ export function AppLayout({ children, currentModule = 'todos', onModuleChange }:
       calendar: 'calendar.title',
       groceries: 'groceries.title',
       documents: 'documents.title',
+      'ai-dashboard': 'dashboard.title',
     };
     return t(titleKeys[moduleId]);
   };
