@@ -164,6 +164,7 @@ export interface TranslationKeys {
   'dashboard.nav.insights': string;
   'dashboard.nav.alerts': string;
   'dashboard.nav.recommendations': string;
+  'dashboard.nav.chat': string;
   'dashboard.confidence': string;
   'dashboard.impact': string;
   'dashboard.summary.fallback.title': string;
@@ -239,5 +240,21 @@ export interface TranslationKeys {
   'time.daysAgo': string;
   'time.weeksAgo': string;
   'time.monthsAgo': string;
+
+  // Chat Interface
+  'chat.title': string;
+  'chat.clear': string;
+  'chat.input.placeholder': string;
+  'chat.input.hint': string;
+  'chat.welcome.title': string;
+  'chat.welcome.description': string;
+  'chat.suggestions.title': string;
+  'chat.suggestions.todos': string;
+  'chat.suggestions.events': string;
+  'chat.suggestions.groceries': string;
+  'chat.suggestions.productivity': string;
+  'chat.error.response': string;
+  'chat.unavailable.title': string;
+  'chat.unavailable.description': string;
 
 }

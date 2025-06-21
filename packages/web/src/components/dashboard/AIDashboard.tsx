@@ -8,6 +8,7 @@ import { ErrorMessage } from '../ui/ErrorMessage';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { SmartCards } from './SmartCards';
+import { ChatInterface } from './ChatInterface';
 import './AIDashboard.css';
 
 // Component props
@@ -16,7 +17,7 @@ interface AIDashboardProps {
 }
 
 // Dashboard sections
-type DashboardSection = 'summary' | 'insights' | 'alerts' | 'recommendations';
+type DashboardSection = 'summary' | 'insights' | 'alerts' | 'recommendations' | 'chat';
 
 // Component state interface
 interface DashboardState {
@@ -197,6 +198,18 @@ export const AIDashboard: React.FC<AIDashboardProps> = ({ className = '' }) => {
           </div>
         );
       
+      case 'chat':
+        return (
+          <div className="dashboard-chat">
+            {familyData && (
+              <ChatInterface 
+                familyData={familyData}
+                className="dashboard-chat-interface"
+              />
+            )}
+          </div>
+        );
+      
       default:
         return null;
     }
@@ -248,6 +261,12 @@ export const AIDashboard: React.FC<AIDashboardProps> = ({ className = '' }) => {
           onClick={() => handleSectionChange('recommendations')}
         >
           {t('dashboard.nav.recommendations')}
+        </button>
+        <button
+          className={`nav-button ${state.activeSection === 'chat' ? 'active' : ''}`}
+          onClick={() => handleSectionChange('chat')}
+        >
+          {t('dashboard.nav.chat')}
         </button>
       </div>
 

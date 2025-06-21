@@ -194,6 +194,7 @@ export const en: TranslationKeys = {
   'dashboard.nav.insights': 'Insights',
   'dashboard.nav.alerts': 'Alerts',
   'dashboard.nav.recommendations': 'Recommendations',
+  'dashboard.nav.chat': 'Chat',
   'dashboard.confidence': 'Confidence',
   'dashboard.impact': 'Impact',
   'dashboard.summary.fallback.title': 'Family Overview',
@@ -231,5 +232,21 @@ export const en: TranslationKeys = {
   'smartcards.documents.title': 'Recent Docs',
   'smartcards.documents.subtitle': 'New documents this week',
   'smartcards.ai.title': 'AI Suggestions',
+
+  // Chat Interface
+  'chat.title': 'Ask AI Assistant',
+  'chat.clear': 'Clear',
+  'chat.input.placeholder': 'Ask a question about your family activities...',
+  'chat.input.hint': 'Press Enter to send',
+  'chat.welcome.title': 'How can I help you today?',
+  'chat.welcome.description': 'Ask me anything about your family\'s todos, events, groceries, or overall organization. I have access to all your current data.',
+  'chat.suggestions.title': 'Try asking:',
+  'chat.suggestions.todos': 'What tasks are due this week?',
+  'chat.suggestions.events': 'What events do we have coming up?',
+  'chat.suggestions.groceries': 'What groceries do we need to buy?',
+  'chat.suggestions.productivity': 'How is our family doing with productivity?',
+  'chat.error.response': 'Sorry, I encountered an error processing your question. Please try again.',
+  'chat.unavailable.title': 'AI Assistant Unavailable',
+  'chat.unavailable.description': 'The AI assistant is temporarily unavailable. Please check your internet connection and try again later.',
 
 };

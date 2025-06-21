@@ -194,6 +194,7 @@ export const es: TranslationKeys = {
   'dashboard.nav.insights': 'Análisis',
   'dashboard.nav.alerts': 'Alertas',
   'dashboard.nav.recommendations': 'Recomendaciones',
+  'dashboard.nav.chat': 'Chat',
   'dashboard.confidence': 'Confianza',
   'dashboard.impact': 'Impacto',
   'dashboard.summary.fallback.title': 'Resumen Familiar',
@@ -231,5 +232,21 @@ export const es: TranslationKeys = {
   'smartcards.documents.title': 'Docs Recientes',
   'smartcards.documents.subtitle': 'Nuevos documentos esta semana',
   'smartcards.ai.title': 'Sugerencias IA',
+
+  // Chat Interface
+  'chat.title': 'Preguntar a IA',
+  'chat.clear': 'Limpiar',
+  'chat.input.placeholder': 'Pregunta sobre las actividades de tu familia...',
+  'chat.input.hint': 'Presiona Enter para enviar',
+  'chat.welcome.title': '¿Cómo puedo ayudarte hoy?',
+  'chat.welcome.description': 'Pregúntame cualquier cosa sobre las tareas, eventos, compras o organización general de tu familia. Tengo acceso a todos tus datos actuales.',
+  'chat.suggestions.title': 'Prueba preguntando:',
+  'chat.suggestions.todos': '¿Qué tareas vencen esta semana?',
+  'chat.suggestions.events': '¿Qué eventos tenemos próximamente?',
+  'chat.suggestions.groceries': '¿Qué comestibles necesitamos comprar?',
+  'chat.suggestions.productivity': '¿Cómo va nuestra familia con la productividad?',
+  'chat.error.response': 'Perdón, encontré un error procesando tu pregunta. Por favor intenta de nuevo.',
+  'chat.unavailable.title': 'Asistente IA No Disponible',
+  'chat.unavailable.description': 'El asistente de IA está temporalmente no disponible. Verifica tu conexión a internet e intenta más tarde.',
 
 };
