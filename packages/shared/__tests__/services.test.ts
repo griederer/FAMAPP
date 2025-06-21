@@ -4,20 +4,25 @@ import { setFirebaseServices, getFirebaseServices } from '../src/services/fireba
 // Mock localStorage for tests
 const mockLocalStorage = {
   data: {} as Record<string, string>,
-  getItem: jest.fn((key: string) => mockLocalStorage.data[key] || null),
-  setItem: jest.fn((key: string, value: string) => {
+  length: 0,
+  getItem: jest.fn((key: string): string | null => mockLocalStorage.data[key] || null),
+  setItem: jest.fn((key: string, value: string): void => {
     mockLocalStorage.data[key] = value;
   }),
-  removeItem: jest.fn((key: string) => {
+  removeItem: jest.fn((key: string): void => {
     delete mockLocalStorage.data[key];
   }),
-  clear: jest.fn(() => {
+  clear: jest.fn((): void => {
     mockLocalStorage.data = {};
+  }),
+  key: jest.fn((index: number): string | null => {
+    const keys = Object.keys(mockLocalStorage.data);
+    return keys[index] || null;
   }),
 };
 
 // Mock global localStorage
-Object.defineProperty(window, 'localStorage', {
+Object.defineProperty(global, 'localStorage', {
   value: mockLocalStorage,
 });
 

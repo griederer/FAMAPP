@@ -7,11 +7,23 @@ export interface StorageAdapter {
   clear(): Promise<void>;
 }
 
+// Helper function to get storage
+function getStorage(): Storage | null {
+  if (typeof window !== 'undefined' && window.localStorage) {
+    return window.localStorage;
+  }
+  if (typeof global !== 'undefined' && (global as any).localStorage) {
+    return (global as any).localStorage;
+  }
+  return null;
+}
+
 // Default implementation for web localStorage
 export class WebStorageAdapter implements StorageAdapter {
   async getItem(key: string): Promise<string | null> {
     try {
-      return localStorage.getItem(key);
+      const storage = getStorage();
+      return storage?.getItem(key) || null;
     } catch (error) {
       console.error('Storage getItem error:', error);
       return null;
@@ -20,7 +32,9 @@ export class WebStorageAdapter implements StorageAdapter {
 
   async setItem(key: string, value: string): Promise<void> {
     try {
-      localStorage.setItem(key, value);
+      const storage = getStorage();
+      if (!storage) throw new Error('Storage not available');
+      storage.setItem(key, value);
     } catch (error) {
       console.error('Storage setItem error:', error);
       throw error;
@@ -29,7 +43,9 @@ export class WebStorageAdapter implements StorageAdapter {
 
   async removeItem(key: string): Promise<void> {
     try {
-      localStorage.removeItem(key);
+      const storage = getStorage();
+      if (!storage) throw new Error('Storage not available');
+      storage.removeItem(key);
     } catch (error) {
       console.error('Storage removeItem error:', error);
       throw error;
@@ -38,7 +54,9 @@ export class WebStorageAdapter implements StorageAdapter {
 
   async clear(): Promise<void> {
     try {
-      localStorage.clear();
+      const storage = getStorage();
+      if (!storage) throw new Error('Storage not available');
+      storage.clear();
     } catch (error) {
       console.error('Storage clear error:', error);
       throw error;
