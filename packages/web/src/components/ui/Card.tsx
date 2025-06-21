@@ -5,11 +5,12 @@ import { cn } from '../../styles/components';
 import type { CardProps } from '../../types/theme';
 
 export const Card = forwardRef<HTMLDivElement, CardProps>(
-  ({ variant = 'default', children, className, onClick }, ref) => {
+  ({ variant = 'default', children, className, onClick, 'data-testid': testId }, ref) => {
     return (
       <div
         ref={ref}
         onClick={onClick}
+        data-testid={testId}
         className={cn(
           cardStyles.base,
           cardStyles.variants[variant],

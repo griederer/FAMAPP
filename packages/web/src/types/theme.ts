@@ -50,6 +50,7 @@ export interface CardProps {
   children: React.ReactNode;
   className?: string;
   onClick?: () => void;
+  'data-testid'?: string;
 }
 
 export interface FamilyTagProps {

@@ -194,6 +194,7 @@ export const SmartCards: React.FC<SmartCardsProps> = ({
     <Card 
       key={card.id} 
       className={`smart-card smart-card--${card.color} smart-card--${card.priority}`}
+      data-testid={`smart-card-${card.id}`}
     >
       <div className="smart-card__header">
         <div className="smart-card__icon">{card.icon}</div>
@@ -204,7 +205,7 @@ export const SmartCards: React.FC<SmartCardsProps> = ({
       
       <div className="smart-card__content">
         <h3 className="smart-card__title">{card.title}</h3>
-        <div className="smart-card__value">{card.value}</div>
+        <div className="smart-card__value" data-testid={`card-value-${card.id}`}>{card.value}</div>
         {card.subtitle && (
           <p className="smart-card__subtitle">{card.subtitle}</p>
         )}
@@ -216,8 +217,14 @@ export const SmartCards: React.FC<SmartCardsProps> = ({
   // Generate and render cards
   const smartCards = generateSmartCards();
 
-  // If no cards to display
-  if (smartCards.length === 0) {
+  // Check if we should show empty state (no meaningful data)
+  const hasNoMeaningfulData = familyData.todos.totalCount === 0 && 
+                             familyData.events.totalCount === 0 && 
+                             familyData.groceries.totalCount === 0 && 
+                             familyData.documents.totalCount === 0;
+
+  // If no meaningful data to display
+  if (hasNoMeaningfulData) {
     return (
       <div className={`smart-cards-empty ${className}`}>
         <div className="empty-state">
@@ -240,11 +247,11 @@ export const SmartCards: React.FC<SmartCardsProps> = ({
         {smartCards.map(renderCard)}
       </div>
       
-      {aiResponse && (
-        <div className="smart-cards__ai-insights">
+      {aiResponse && aiResponse.metadata?.suggestions && aiResponse.metadata.suggestions.length > 0 && (
+        <div className="smart-cards__ai-insights" data-testid="ai-suggestions-section">
           <h3>{t('smartcards.ai.title')}</h3>
           <div className="ai-insights-content">
-            {aiResponse.metadata?.suggestions?.slice(0, 3).map((suggestion, index) => (
+            {aiResponse.metadata.suggestions.slice(0, 3).map((suggestion, index) => (
               <div key={index} className="ai-suggestion">
                 <span className="suggestion-icon">💡</span>
                 <span className="suggestion-text">{suggestion.description}</span>
