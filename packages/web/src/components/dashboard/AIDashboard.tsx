@@ -7,6 +7,7 @@ import { LoadingState } from '../ui/LoadingState';
 import { ErrorMessage } from '../ui/ErrorMessage';
 import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
+import { SmartCards } from './SmartCards';
 import './AIDashboard.css';
 
 // Component props
@@ -120,7 +121,7 @@ export const AIDashboard: React.FC<AIDashboardProps> = ({ className = '' }) => {
       case 'summary':
         return (
           <div className="dashboard-summary">
-            {aiSummary ? (
+            {aiSummary && (
               <div className="ai-content">
                 <div className="ai-response">{aiSummary.content}</div>
                 <div className="ai-metadata">
@@ -130,28 +131,15 @@ export const AIDashboard: React.FC<AIDashboardProps> = ({ className = '' }) => {
                   <span className="model">{aiSummary.model}</span>
                 </div>
               </div>
-            ) : (
-              <div className="fallback-summary">
-                <h3>{t('dashboard.summary.fallback.title')}</h3>
-                <div className="stats-grid">
-                  <div className="stat-item">
-                    <div className="stat-value">{familyData?.todos.totalCount || 0}</div>
-                    <div className="stat-label">{t('dashboard.todos.total')}</div>
-                  </div>
-                  <div className="stat-item">
-                    <div className="stat-value">{familyData?.events.thisWeek.length || 0}</div>
-                    <div className="stat-label">{t('dashboard.events.thisWeek')}</div>
-                  </div>
-                  <div className="stat-item">
-                    <div className="stat-value">{familyData?.groceries.totalCount || 0}</div>
-                    <div className="stat-label">{t('dashboard.groceries.total')}</div>
-                  </div>
-                  <div className="stat-item">
-                    <div className="stat-value">{familyData?.documents.totalCount || 0}</div>
-                    <div className="stat-label">{t('dashboard.documents.total')}</div>
-                  </div>
-                </div>
-              </div>
+            )}
+            
+            {/* Smart Cards for visual insights */}
+            {familyData && (
+              <SmartCards 
+                familyData={familyData} 
+                aiResponse={aiSummary}
+                className="dashboard-smart-cards"
+              />
             )}
           </div>
         );

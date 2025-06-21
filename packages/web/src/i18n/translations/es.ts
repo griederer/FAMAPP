@@ -208,4 +208,28 @@ export const es: TranslationKeys = {
   'dashboard.recommendations.title': 'Recomendaciones Inteligentes',
   'dashboard.recommendations.none': 'No hay recomendaciones disponibles. Vuelve más tarde.',
 
+  // SmartCards
+  'smartcards.title': 'Información Familiar',
+  'smartcards.subtitle': 'Métricas clave y tendencias para la organización familiar',
+  'smartcards.lastUpdated': 'Última actualización',
+  'smartcards.empty.title': 'No hay información disponible',
+  'smartcards.empty.description': 'Agrega tareas y eventos para ver información familiar aquí.',
+  'smartcards.trend.increase': 'vs semana pasada',
+  'smartcards.trend.decrease': 'vs semana pasada',
+  'smartcards.todos.title': 'Finalización de Tareas',
+  'smartcards.todos.subtitle': '{pending} de {total} tareas pendientes',
+  'smartcards.overdue.title': 'Tareas Vencidas',
+  'smartcards.overdue.subtitle': 'Tareas que necesitan atención inmediata',
+  'smartcards.events.title': 'Esta Semana',
+  'smartcards.events.subtitle': 'Eventos y citas próximas',
+  'smartcards.groceries.title': 'Compras Urgentes',
+  'smartcards.groceries.subtitle': 'Artículos necesarios pronto',
+  'smartcards.health.title': 'Salud Familiar',
+  'smartcards.health.subtitle': 'Puntuación general de organización',
+  'smartcards.productivity.title': 'Productividad',
+  'smartcards.productivity.subtitle': 'Tasa promedio de finalización',
+  'smartcards.documents.title': 'Docs Recientes',
+  'smartcards.documents.subtitle': 'Nuevos documentos esta semana',
+  'smartcards.ai.title': 'Sugerencias IA',
+
 };

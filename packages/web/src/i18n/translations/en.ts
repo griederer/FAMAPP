@@ -208,4 +208,28 @@ export const en: TranslationKeys = {
   'dashboard.recommendations.title': 'Smart Recommendations',
   'dashboard.recommendations.none': 'No recommendations available. Check back later.',
 
+  // SmartCards
+  'smartcards.title': 'Family Insights',
+  'smartcards.subtitle': 'Key metrics and trends for your family organization',
+  'smartcards.lastUpdated': 'Last updated',
+  'smartcards.empty.title': 'No insights available',
+  'smartcards.empty.description': 'Add some tasks and events to see family insights here.',
+  'smartcards.trend.increase': 'vs last week',
+  'smartcards.trend.decrease': 'vs last week',
+  'smartcards.todos.title': 'Task Completion',
+  'smartcards.todos.subtitle': '{pending} of {total} tasks pending',
+  'smartcards.overdue.title': 'Overdue Tasks',
+  'smartcards.overdue.subtitle': 'Tasks that need immediate attention',
+  'smartcards.events.title': 'This Week',
+  'smartcards.events.subtitle': 'Upcoming events and appointments',
+  'smartcards.groceries.title': 'Urgent Groceries',
+  'smartcards.groceries.subtitle': 'Items needed soon',
+  'smartcards.health.title': 'Family Health',
+  'smartcards.health.subtitle': 'Overall organization score',
+  'smartcards.productivity.title': 'Productivity',
+  'smartcards.productivity.subtitle': 'Average completion rate',
+  'smartcards.documents.title': 'Recent Docs',
+  'smartcards.documents.subtitle': 'New documents this week',
+  'smartcards.ai.title': 'AI Suggestions',
+
 };

@@ -178,6 +178,30 @@ export interface TranslationKeys {
   'dashboard.recommendations.title': string;
   'dashboard.recommendations.none': string;
 
+  // SmartCards
+  'smartcards.title': string;
+  'smartcards.subtitle': string;
+  'smartcards.lastUpdated': string;
+  'smartcards.empty.title': string;
+  'smartcards.empty.description': string;
+  'smartcards.trend.increase': string;
+  'smartcards.trend.decrease': string;
+  'smartcards.todos.title': string;
+  'smartcards.todos.subtitle': string;
+  'smartcards.overdue.title': string;
+  'smartcards.overdue.subtitle': string;
+  'smartcards.events.title': string;
+  'smartcards.events.subtitle': string;
+  'smartcards.groceries.title': string;
+  'smartcards.groceries.subtitle': string;
+  'smartcards.health.title': string;
+  'smartcards.health.subtitle': string;
+  'smartcards.productivity.title': string;
+  'smartcards.productivity.subtitle': string;
+  'smartcards.documents.title': string;
+  'smartcards.documents.subtitle': string;
+  'smartcards.ai.title': string;
+
   // Family
   'family.gonzalo': string;
   'family.mpaz': string;
