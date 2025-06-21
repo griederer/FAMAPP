@@ -60,6 +60,7 @@ export const en: TranslationKeys = {
   'nav.todos': 'To-Do',
   'nav.calendar': 'Calendar',
   'nav.groceries': 'Groceries',
+  'nav.documents': 'Documents',
 
   // Todos
   'todos.title': 'To-Do Lists',
@@ -179,5 +180,32 @@ export const en: TranslationKeys = {
   'time.daysAgo': '{count} days ago',
   'time.weeksAgo': '{count} weeks ago',
   'time.monthsAgo': '{count} months ago',
+
+
+  // Dashboard
+  'dashboard.title': 'AI Dashboard',
+  'dashboard.loading': 'Generating your family insights...',
+  'dashboard.loading.subtitle': 'This usually takes a few seconds',
+  'dashboard.refresh': 'Refresh',
+  'dashboard.lastRefresh': 'Last updated',
+  'dashboard.ai.unavailable': 'AI service is temporarily unavailable. Showing basic statistics instead.',
+  'dashboard.ai.limited': 'AI features are limited. Some insights may not be available.',
+  'dashboard.nav.summary': 'Summary',
+  'dashboard.nav.insights': 'Insights',
+  'dashboard.nav.alerts': 'Alerts',
+  'dashboard.nav.recommendations': 'Recommendations',
+  'dashboard.confidence': 'Confidence',
+  'dashboard.impact': 'Impact',
+  'dashboard.summary.fallback.title': 'Family Overview',
+  'dashboard.todos.total': 'Total Tasks',
+  'dashboard.events.thisWeek': 'Events This Week',
+  'dashboard.groceries.total': 'Grocery Items',
+  'dashboard.documents.total': 'Documents',
+  'dashboard.insights.title': 'Key Insights',
+  'dashboard.insights.none': 'No insights available at this time. Try refreshing later.',
+  'dashboard.alerts.title': 'Important Alerts',
+  'dashboard.alerts.none': 'No alerts at this time. Everything looks good!',
+  'dashboard.recommendations.title': 'Smart Recommendations',
+  'dashboard.recommendations.none': 'No recommendations available. Check back later.',
 
 };

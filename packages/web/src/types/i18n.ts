@@ -69,6 +69,7 @@ export interface TranslationKeys {
   'nav.todos': string;
   'nav.calendar': string;
   'nav.groceries': string;
+  'nav.documents': string;
 
   // Todos
   'todos.title': string;
@@ -150,6 +151,32 @@ export interface TranslationKeys {
 
   // Documents
   'documents.title': string;
+
+  // Dashboard
+  'dashboard.title': string;
+  'dashboard.loading': string;
+  'dashboard.loading.subtitle': string;
+  'dashboard.refresh': string;
+  'dashboard.lastRefresh': string;
+  'dashboard.ai.unavailable': string;
+  'dashboard.ai.limited': string;
+  'dashboard.nav.summary': string;
+  'dashboard.nav.insights': string;
+  'dashboard.nav.alerts': string;
+  'dashboard.nav.recommendations': string;
+  'dashboard.confidence': string;
+  'dashboard.impact': string;
+  'dashboard.summary.fallback.title': string;
+  'dashboard.todos.total': string;
+  'dashboard.events.thisWeek': string;
+  'dashboard.groceries.total': string;
+  'dashboard.documents.total': string;
+  'dashboard.insights.title': string;
+  'dashboard.insights.none': string;
+  'dashboard.alerts.title': string;
+  'dashboard.alerts.none': string;
+  'dashboard.recommendations.title': string;
+  'dashboard.recommendations.none': string;
 
   // Family
   'family.gonzalo': string;

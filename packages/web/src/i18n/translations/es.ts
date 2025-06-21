@@ -60,6 +60,7 @@ export const es: TranslationKeys = {
   'nav.todos': 'Tareas',
   'nav.calendar': 'Calendario',
   'nav.groceries': 'Compras',
+  'nav.documents': 'Documentos',
 
   // Todos
   'todos.title': 'Lista de Tareas',
@@ -179,5 +180,32 @@ export const es: TranslationKeys = {
   'time.daysAgo': 'hace {count} días',
   'time.weeksAgo': 'hace {count} semanas',
   'time.monthsAgo': 'hace {count} meses',
+
+
+  // Dashboard
+  'dashboard.title': 'Panel AI',
+  'dashboard.loading': 'Generando información familiar...',
+  'dashboard.loading.subtitle': 'Esto suele tardar unos segundos',
+  'dashboard.refresh': 'Actualizar',
+  'dashboard.lastRefresh': 'Última actualización',
+  'dashboard.ai.unavailable': 'El servicio AI no está disponible temporalmente. Mostrando estadísticas básicas.',
+  'dashboard.ai.limited': 'Las funciones AI están limitadas. Algunos análisis pueden no estar disponibles.',
+  'dashboard.nav.summary': 'Resumen',
+  'dashboard.nav.insights': 'Análisis',
+  'dashboard.nav.alerts': 'Alertas',
+  'dashboard.nav.recommendations': 'Recomendaciones',
+  'dashboard.confidence': 'Confianza',
+  'dashboard.impact': 'Impacto',
+  'dashboard.summary.fallback.title': 'Resumen Familiar',
+  'dashboard.todos.total': 'Tareas Totales',
+  'dashboard.events.thisWeek': 'Eventos Esta Semana',
+  'dashboard.groceries.total': 'Artículos de Compra',
+  'dashboard.documents.total': 'Documentos',
+  'dashboard.insights.title': 'Análisis Clave',
+  'dashboard.insights.none': 'No hay análisis disponibles en este momento. Intenta actualizar más tarde.',
+  'dashboard.alerts.title': 'Alertas Importantes',
+  'dashboard.alerts.none': 'No hay alertas en este momento. ¡Todo se ve bien!',
+  'dashboard.recommendations.title': 'Recomendaciones Inteligentes',
+  'dashboard.recommendations.none': 'No hay recomendaciones disponibles. Vuelve más tarde.',
 
 };
