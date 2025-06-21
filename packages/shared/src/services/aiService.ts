@@ -131,10 +131,11 @@ export class AIService {
   // Answer conversational questions about family data
   async answerQuestion(question: string, familyData: AggregatedFamilyData): Promise<AIResponse> {
     const prompt = this.buildQuestionPrompt(question, familyData);
+    const context = this.createEnhancedContext(familyData, question);
     
     return this.generateResponse({
       prompt,
-      context: { familyData, userPreferences: undefined, sessionContext: undefined, timeContext: this.createTimeContext() },
+      context,
       maxTokens: 600,
       temperature: 0.5,
       type: 'question_answer'
@@ -186,19 +187,40 @@ Respond in a natural, conversational tone as if speaking directly to the family.
 `;
   }
 
-  // Build question-answering prompt
+  // Build question-answering prompt with enhanced context analysis
   private buildQuestionPrompt(question: string, familyData: AggregatedFamilyData): string {
+    const questionType = this.analyzeQuestionType(question);
+    const relevantData = this.extractRelevantDataForQuestion(question, familyData);
+    const timeContext = this.createTimeContext();
+    
     return `
-You are a helpful family assistant AI. Answer the following question about the family's data.
+You are a helpful family assistant AI with deep understanding of family organization patterns. 
 
-Question: ${question}
+QUESTION: ${question}
 
-Family Data:
-${JSON.stringify(familyData, null, 2)}
+QUESTION TYPE: ${questionType.type} (${questionType.confidence}% confidence)
+FOCUS AREAS: ${questionType.focusAreas.join(', ')}
 
-Provide a helpful, accurate answer based only on the available data. If you don't have enough information, say so politely and suggest what additional information might be helpful.
+TIME CONTEXT:
+- Current time: ${timeContext.currentTime.toLocaleString()}
+- Day of week: ${this.getDayName(timeContext.dayOfWeek)}
+- Time of day: ${timeContext.timeOfDay}
+- Is weekend: ${timeContext.isWeekend}
 
-Keep your response conversational and friendly.
+RELEVANT FAMILY DATA:
+${JSON.stringify(relevantData, null, 2)}
+
+ANSWERING GUIDELINES:
+1. Be conversational and warm, like a family friend
+2. Focus on actionable insights rather than just data
+3. Consider time context (e.g., "this week", "today", "upcoming")
+4. If trends are relevant, mention patterns you observe
+5. Be specific with numbers, dates, and family member names
+6. If information is missing, suggest what would be helpful to know
+7. For productivity questions, consider workload balance across family
+8. For scheduling questions, consider conflicts and time management
+
+Provide a helpful, accurate answer that demonstrates understanding of family dynamics and organization needs.
 `;
   }
 
@@ -361,6 +383,152 @@ Format your response as brief, actionable alerts. Use a supportive but direct to
       isWeekend: now.getDay() === 0 || now.getDay() === 6,
       timeOfDay
     };
+  }
+
+  // Analyze question type and intent
+  private analyzeQuestionType(question: string): { type: string; confidence: number; focusAreas: string[] } {
+    const lowerQuestion = question.toLowerCase();
+    const patterns = {
+      schedule: {
+        keywords: ['when', 'schedule', 'event', 'calendar', 'appointment', 'meeting', 'upcoming', 'next week', 'this week', 'today', 'tomorrow'],
+        confidence: 85
+      },
+      tasks: {
+        keywords: ['task', 'todo', 'complete', 'pending', 'overdue', 'deadline', 'finish', 'done', 'assigned'],
+        confidence: 90
+      },
+      groceries: {
+        keywords: ['grocery', 'shopping', 'store', 'buy', 'purchase', 'food', 'ingredient', 'meal'],
+        confidence: 95
+      },
+      productivity: {
+        keywords: ['productive', 'progress', 'performance', 'efficiency', 'workload', 'balance', 'busy'],
+        confidence: 80
+      },
+      family: {
+        keywords: ['family', 'member', 'gonzalo', 'mpaz', 'borja', 'melody', 'dad', 'mom', 'son', 'daughter'],
+        confidence: 85
+      },
+      general: {
+        keywords: ['what', 'how', 'why', 'help', 'suggest', 'recommend', 'overview', 'status'],
+        confidence: 70
+      }
+    };
+
+    let bestMatch = { type: 'general', confidence: 50, focusAreas: ['general'] };
+    const focusAreas: string[] = [];
+
+    for (const [type, pattern] of Object.entries(patterns)) {
+      const matches = pattern.keywords.filter(keyword => lowerQuestion.includes(keyword));
+      if (matches.length > 0) {
+        const confidence = Math.min(pattern.confidence + (matches.length - 1) * 5, 95);
+        if (confidence > bestMatch.confidence) {
+          bestMatch = { type, confidence, focusAreas: [type] };
+        }
+        if (matches.length > 0) {
+          focusAreas.push(type);
+        }
+      }
+    }
+
+    return {
+      type: bestMatch.type,
+      confidence: bestMatch.confidence,
+      focusAreas: focusAreas.length > 0 ? focusAreas : ['general']
+    };
+  }
+
+  // Extract only data relevant to the specific question
+  private extractRelevantDataForQuestion(question: string, familyData: AggregatedFamilyData): any {
+    const questionType = this.analyzeQuestionType(question);
+    const lowerQuestion = question.toLowerCase();
+    
+    const relevantData: any = {
+      summary: familyData.summary,
+      timeContext: this.createTimeContext()
+    };
+
+    // Include todos data if question is about tasks
+    if (questionType.focusAreas.includes('tasks') || 
+        lowerQuestion.includes('task') || lowerQuestion.includes('todo')) {
+      relevantData.todos = {
+        pending: familyData.todos.pending.slice(0, 10), // Recent pending
+        overdue: familyData.todos.overdue,
+        completedRecent: familyData.todos.completedRecent.slice(0, 5),
+        totalCount: familyData.todos.totalCount,
+        completionRate: familyData.todos.completionRate,
+        memberStats: familyData.todos.memberStats
+      };
+    }
+
+    // Include events data if question is about schedule/calendar
+    if (questionType.focusAreas.includes('schedule') || 
+        lowerQuestion.includes('event') || lowerQuestion.includes('calendar') ||
+        lowerQuestion.includes('when') || lowerQuestion.includes('upcoming')) {
+      relevantData.events = {
+        thisWeek: familyData.events.thisWeek,
+        nextWeek: familyData.events.nextWeek,
+        upcoming: familyData.events.upcoming.slice(0, 10), // Next 10 events
+        totalCount: familyData.events.totalCount,
+        memberEvents: familyData.events.memberEvents
+      };
+    }
+
+    // Include groceries data if question is about shopping/food
+    if (questionType.focusAreas.includes('groceries') || 
+        lowerQuestion.includes('grocery') || lowerQuestion.includes('shopping') ||
+        lowerQuestion.includes('food') || lowerQuestion.includes('buy')) {
+      relevantData.groceries = {
+        pending: familyData.groceries.pending.slice(0, 10),
+        urgentItems: familyData.groceries.urgentItems,
+        completedRecent: familyData.groceries.completedRecent.slice(0, 5),
+        totalCount: familyData.groceries.totalCount,
+        completionRate: familyData.groceries.completionRate,
+        categoryStats: familyData.groceries.categoryStats
+      };
+    }
+
+    // For productivity/family questions, include member-specific data
+    if (questionType.focusAreas.includes('productivity') || 
+        questionType.focusAreas.includes('family') ||
+        lowerQuestion.includes('productive') || lowerQuestion.includes('family')) {
+      relevantData.memberStats = {
+        todoStats: familyData.todos.memberStats,
+        eventStats: familyData.events.memberEvents
+      };
+      relevantData.familyMembers = familyData.familyMembers;
+    }
+
+    // Always include summary for context
+    return relevantData;
+  }
+
+  // Create enhanced context with question analysis
+  private createEnhancedContext(familyData: AggregatedFamilyData, question: string): FamilyContext {
+    const timeContext = this.createTimeContext();
+    const questionAnalysis = this.analyzeQuestionType(question);
+    
+    return {
+      familyData,
+      userPreferences: {
+        language: 'en', // Could be dynamic based on user settings
+        timezone: timeContext.timezone,
+        preferredTimeFormat: '12h'
+      },
+      sessionContext: {
+        currentQuestion: question,
+        questionType: questionAnalysis.type,
+        focusAreas: questionAnalysis.focusAreas,
+        requestTimestamp: new Date()
+      },
+      timeContext
+    };
+  }
+
+  // Helper to get day name from day number
+  private getDayName(dayNumber: number): string {
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    return days[dayNumber] || 'Unknown';
   }
 
   // Get current configuration

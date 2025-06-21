@@ -292,19 +292,27 @@ export interface TodoTrends {
 // User preferences for AI interactions
 export interface UserPreferences {
   language: 'en' | 'es';
-  tone: AITone;
-  detailLevel: 'brief' | 'standard' | 'detailed';
-  focusAreas: FocusArea[];
-  notificationFrequency: 'high' | 'medium' | 'low';
+  tone?: AITone;
+  detailLevel?: 'brief' | 'standard' | 'detailed';
+  focusAreas?: FocusArea[];
+  notificationFrequency?: 'high' | 'medium' | 'low';
+  // Enhanced preferences for natural language processing
+  timezone?: string;
+  preferredTimeFormat?: '12h' | '24h';
 }
 
 // Session context for continuity
 export interface SessionContext {
-  sessionId: string;
-  startTime: Date;
-  previousQuestions: string[];
-  userIntent: UserIntent;
-  conversationHistory: ConversationMessage[];
+  sessionId?: string;
+  startTime?: Date;
+  previousQuestions?: string[];
+  userIntent?: UserIntent;
+  conversationHistory?: ConversationMessage[];
+  // Enhanced context for natural language processing
+  currentQuestion?: string;
+  questionType?: string;
+  focusAreas?: string[];
+  requestTimestamp?: Date;
 }
 
 // Time context for AI responses
