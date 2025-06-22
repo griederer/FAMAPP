@@ -12,6 +12,7 @@ import { SmartCards } from './SmartCards';
 import { ChatInterface } from './ChatInterface';
 import { SmartAlerts } from './SmartAlerts';
 import { AnalyticsPanel } from './AnalyticsPanel';
+import { GoalTracker } from './GoalTracker';
 import './AIDashboard.css';
 
 // Component props
@@ -20,7 +21,7 @@ interface AIDashboardProps {
 }
 
 // Dashboard sections
-type DashboardSection = 'summary' | 'insights' | 'alerts' | 'analytics' | 'recommendations' | 'chat';
+type DashboardSection = 'summary' | 'insights' | 'alerts' | 'analytics' | 'recommendations' | 'chat' | 'goals';
 
 // Component state interface
 interface DashboardState {
@@ -337,6 +338,18 @@ export const AIDashboard: React.FC<AIDashboardProps> = ({ className = '' }) => {
           </div>
         );
       
+      case 'goals':
+        return (
+          <div className="dashboard-goals">
+            {familyData && (
+              <GoalTracker 
+                familyData={familyData}
+                className="dashboard-goal-tracker"
+              />
+            )}
+          </div>
+        );
+      
       default:
         return null;
     }
@@ -401,6 +414,12 @@ export const AIDashboard: React.FC<AIDashboardProps> = ({ className = '' }) => {
           onClick={() => handleSectionChange('chat')}
         >
           {t('dashboard.nav.chat')}
+        </button>
+        <button
+          className={`nav-button ${state.activeSection === 'goals' ? 'active' : ''}`}
+          onClick={() => handleSectionChange('goals')}
+        >
+          {t('dashboard.nav.goals')}
         </button>
       </div>
 
