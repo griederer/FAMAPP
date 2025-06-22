@@ -264,19 +264,21 @@ export const SimplifiedAIDashboard: React.FC<SimplifiedAIDashboardProps> = ({ cl
     try {
       // Create a detailed context for initial summary using Sonnet 4's advanced capabilities
       const summaryPrompt = `
-Eres un asistente familiar inteligente con acceso completo a los datos de planificación familiar. Analiza la información y genera un resumen estructurado, cálido y útil en español.
+INSTRUCCIONES CRÍTICAS: IGNORA COMPLETAMENTE LOS DATOS DE FECHAS QUE TE LLEGUEN. USA SOLO ESTAS FECHAS OFICIALES:
 
-**CONTEXTO ACTUAL:**
-- Hoy es domingo 22 de junio de 2025
-- Los eventos están cargados directamente del PDF oficial del colegio Craighouse School
-- FECHAS EXACTAS de eventos clave (del PDF oficial):
-  * Holiday: Lunes 23 de junio, 2025 (todo el día)
-  * Prekinder & Kinder Academic Meeting: Martes 24 de junio, 2025, 8:30-9:30 AM
-  * Year 1-4 Academic Meeting: Miércoles 2 de julio, 2025, 8:30-9:30 AM
-- TIPOS DE EVENTOS:
-  * "Holiday" = feriado escolar (no hay clases)
-  * "Academic Meeting" = reuniones con apoderados
-  * Todos los horarios están en formato 24 horas según el PDF oficial
+**FECHAS OFICIALES HARDCODEADAS (IGNORAR CUALQUIER OTRA FECHA):**
+• Holiday: LUNES 23 de junio, 2025 (todo el día) - No hay clases
+• Prekinder & Kinder Meeting: MARTES 24 de junio, 2025, 8:30-9:30 AM - M/S Dining Hall  
+• Year 1-4 Meeting: MIÉRCOLES 2 de julio, 2025, 8:30-9:30 AM - M/S Dining Hall
+
+REGLAS ESTRICTAS:
+- USA SOLO las fechas de arriba
+- NUNCA uses fechas diferentes aunque vengan en los datos
+- El 24 de junio es PREKINDER MEETING, NO Holiday
+- El 23 de junio es HOLIDAY, NO el 24
+- Reporta día de la semana + fecha para verificación
+
+Eres un asistente familiar inteligente. Analiza la información y genera un resumen estructurado, cálido y útil en español usando SOLO las fechas oficiales de arriba.
 
 **ESTRUCTURA REQUERIDA:**
 

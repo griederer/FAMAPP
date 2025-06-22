@@ -292,7 +292,34 @@ export class DataAggregationService {
         return null;
       };
       
-      // Events loaded successfully from Firebase
+      // DEEP DEBUG: Show complete data transformation pipeline
+      console.log('=== DEEP DEBUG AGGREGATION SERVICE ===');
+      console.log('Raw Firebase snapshot docs:', eventsSnapshot.docs.length);
+      
+      // Check each event transformation step by step
+      eventsSnapshot.docs.forEach((doc, index) => {
+        const rawData = doc.data();
+        console.log(`\n--- RAW EVENT ${index + 1} FROM FIREBASE ---`);
+        console.log('Document ID:', doc.id);
+        console.log('Raw data fields:', Object.keys(rawData));
+        console.log('Raw startDate:', rawData.startDate);
+        console.log('Raw startDate type:', typeof rawData.startDate);
+        console.log('Raw title:', rawData.title);
+        console.log('Raw allDay:', rawData.allDay);
+        
+        // Test date extraction function
+        const extractedDate = getEventDate(rawData);
+        console.log('EXTRACTED DATE:', extractedDate);
+        console.log('Extracted date string:', extractedDate ? extractedDate.toISOString() : 'NULL');
+        console.log('Formatted ES:', extractedDate ? extractedDate.toLocaleDateString('es-ES', { 
+          weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+        }) : 'NULL');
+        console.log('Time ES:', extractedDate ? extractedDate.toLocaleTimeString('es-ES') : 'NULL');
+      });
+      
+      console.log('\n=== FILTERING FOR UPCOMING EVENTS ===');
+      console.log('Current date for comparison:', now.toISOString());
+      console.log('Upcoming cutoff date:', upcomingCutoff.toISOString());
       
       const allEvents: CalendarEvent[] = eventsSnapshot.docs.map(doc => ({
         id: doc.id,
@@ -301,7 +328,24 @@ export class DataAggregationService {
       
       const upcoming = allEvents.filter(event => {
         const eventDate = getEventDate(event);
-        return eventDate && eventDate >= now && eventDate <= upcomingCutoff;
+        const isUpcoming = eventDate && eventDate >= now && eventDate <= upcomingCutoff;
+        
+        // Debug each filtering decision
+        console.log(`\n--- FILTERING EVENT: ${event.title} ---`);
+        console.log('Event date:', eventDate ? eventDate.toISOString() : 'NULL');
+        console.log('Is after now?', eventDate ? eventDate >= now : false);
+        console.log('Is before cutoff?', eventDate ? eventDate <= upcomingCutoff : false);
+        console.log('INCLUDED IN UPCOMING?', isUpcoming);
+        
+        if (isUpcoming) {
+          console.log('✅ ADDED TO UPCOMING:', {
+            title: event.title,
+            date: eventDate.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }),
+            time: event.allDay ? 'Todo el día' : eventDate.toLocaleTimeString('es-ES')
+          });
+        }
+        
+        return isUpcoming;
       });
       
       const thisWeek = allEvents.filter(event => {
@@ -315,6 +359,18 @@ export class DataAggregationService {
 
       // Calculate member event statistics
       const memberEvents = this.calculateMemberEventStats(allEvents);
+
+      // Final debug: Show what gets sent to AI
+      console.log('\n=== FINAL EVENTS DATA SENT TO AI ===');
+      console.log(`UPCOMING EVENTS (${upcoming.length}):`);
+      upcoming.forEach((event, i) => {
+        const eventDate = getEventDate(event);
+        console.log(`${i + 1}. ${event.title}`);
+        console.log(`   Date: ${eventDate ? eventDate.toLocaleDateString('es-ES', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' }) : 'NULL'}`);
+        console.log(`   Time: ${event.allDay ? 'Todo el día' : (eventDate ? eventDate.toLocaleTimeString('es-ES') : 'NULL')}`);
+        console.log(`   Raw startDate in final object:`, event.startDate);
+      });
+      console.log('=== END FINAL DATA ===');
 
       return {
         upcoming,
