@@ -44,13 +44,24 @@ export const SimplifiedAIDashboard: React.FC<SimplifiedAIDashboardProps> = ({ cl
   const [initialSummary, setInitialSummary] = useState<string>('');
   const [isGeneratingSummary, setIsGeneratingSummary] = useState(false);
 
-  // Ensure AI service initialization
+  // Ensure AI service initialization and load calendar fix script
   useEffect(() => {
     const ensureAIService = async () => {
       try {
         console.log('🤖 Ensuring AI Service is initialized for Simplified Dashboard...');
         await initializeAIService();
         console.log('✅ AI Service ready for Simplified Dashboard');
+        
+        // Load calendar fix script
+        const script = document.createElement('script');
+        script.src = '/src/scripts/fixCalendarEvents.js';
+        script.type = 'module';
+        document.head.appendChild(script);
+        
+        setTimeout(() => {
+          console.log('🔧 Calendar fix script available: window.fixCalendarEvents()');
+        }, 1000);
+        
       } catch (error) {
         console.error('❌ Failed to initialize AI Service for Simplified Dashboard:', error);
       }
@@ -82,6 +93,16 @@ export const SimplifiedAIDashboard: React.FC<SimplifiedAIDashboardProps> = ({ cl
       const summaryPrompt = `
 Eres un asistente familiar inteligente con acceso completo a los datos de planificación familiar. Analiza la información y genera un resumen estructurado, cálido y útil en español.
 
+**CONTEXTO ACTUAL:**
+- Hoy es domingo 22 de junio de 2025
+- DISTINGUE CLARAMENTE entre tipos de eventos:
+  * "Holiday" o "Feriado" = día festivo/feriado nacional o religioso
+  * "Meeting", "Academic Meeting", "Reunión", "Prekinder & Kinder Academic Meeting" = reuniones de trabajo/escolares (NO son feriados)
+  * "Birthday", "Cumpleaños" = celebraciones personales
+  * "Appointment", "Cita" = citas médicas o profesionales
+- NO confundas reuniones académicas o de trabajo con feriados/días festivos
+- Si hay un evento llamado "Prekinder & Kinder Academic Meeting" es una reunión escolar, NO un feriado
+
 **ESTRUCTURA REQUERIDA:**
 
 **📋 TODOS PENDIENTES:**
@@ -91,8 +112,9 @@ Eres un asistente familiar inteligente con acceso completo a los datos de planif
 
 **📅 CALENDARIO PRÓXIMAS 2 SEMANAS:**
 - Lista eventos cronológicamente con fechas exactas
+- IDENTIFICA CORRECTAMENTE el tipo de cada evento (feriado, reunión, cita, etc.)
+- Separa claramente: FERIADOS vs REUNIONES ESCOLARES vs CITAS
 - Identifica conflictos potenciales o días muy ocupados
-- Menciona eventos escolares, citas importantes, y festividades
 - Da contexto sobre la carga de trabajo semanal
 
 **🛒 GROCERIES PENDIENTES:**
