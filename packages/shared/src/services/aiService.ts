@@ -53,6 +53,7 @@ export class AIService {
 
     this.client = new Anthropic({
       apiKey: this.config.apiKey,
+      dangerouslyAllowBrowser: true, // Required for web app usage
     });
   }
 
