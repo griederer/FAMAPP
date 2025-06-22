@@ -52,14 +52,14 @@ export const SimplifiedAIDashboard: React.FC<SimplifiedAIDashboardProps> = ({ cl
         await initializeAIService();
         console.log('✅ AI Service ready for Simplified Dashboard');
         
-        // Load calendar fix script directly
+        // Load calendar audit and fix script
         try {
-          const scriptResponse = await fetch('/src/scripts/fixCalendarEvents.js');
+          const scriptResponse = await fetch('/src/scripts/calendarEventAudit.js');
           const scriptText = await scriptResponse.text();
           eval(scriptText);
-          console.log('🔧 Calendar fix script loaded successfully');
+          console.log('🔧 Calendar audit script loaded successfully');
         } catch (error) {
-          console.error('❌ Failed to load calendar fix script:', error);
+          console.error('❌ Failed to load calendar audit script:', error);
           // Fallback: load script inline
           const fixCalendarEvents = async () => {
             console.log('🗓️ Starting calendar events fix...');

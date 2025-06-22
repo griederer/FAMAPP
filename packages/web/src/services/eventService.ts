@@ -68,10 +68,24 @@ class EventService {
       throw new Error('User must be authenticated to create events');
     }
 
+    // Validate required fields
+    if (!data.title?.trim()) {
+      throw new Error('Event title is required');
+    }
+    if (!data.startDate) {
+      throw new Error('Event start date is required');
+    }
+    if (!data.endDate) {
+      throw new Error('Event end date is required');
+    }
+    if (data.startDate >= data.endDate) {
+      throw new Error('Event end date must be after start date');
+    }
+
     try {
       const eventData: any = {
-        title: data.title,
-        description: data.description || null,
+        title: data.title.trim(),
+        description: data.description?.trim() || null,
         startDate: Timestamp.fromDate(data.startDate),
         endDate: Timestamp.fromDate(data.endDate),
         allDay: data.allDay || false,
@@ -82,12 +96,17 @@ class EventService {
         updatedAt: serverTimestamp(),
       };
 
-      // Only add assignedTo if it's not undefined
+      // Validate assignedTo field
+      const validAssignees = ['gonzalo', 'mpaz', 'borja', 'melody'];
       if (data.assignedTo) {
+        if (!validAssignees.includes(data.assignedTo)) {
+          throw new Error(`Invalid assignedTo value. Must be one of: ${validAssignees.join(', ')}`);
+        }
         eventData.assignedTo = data.assignedTo;
       }
 
       const docRef = await addDoc(collection(db, this.COLLECTION_NAME), eventData);
+      console.log(`✅ Event created: ${data.title} on ${data.startDate.toLocaleDateString()}`);
       return docRef.id;
     } catch (error) {
       console.error('Error creating event:', error);
