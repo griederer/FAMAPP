@@ -1,16 +1,23 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useState, lazy, Suspense } from 'react'
 import './App.css'
 import { AuthProvider } from './context/AuthContext'
 import { ThemeProvider } from './context/ThemeContext'
 import { I18nProvider } from './context/I18nContext'
 import { ProtectedRoute } from './components/auth/ProtectedRoute'
 import { AppLayout } from './components/layout'
-import { TodoModule, CalendarModule, GroceriesModule, DocumentsModule } from './components/modules'
-import { AIDashboard } from './components/dashboard'
+import { LoadingState } from './components/ui/LoadingState'
+import { PerformancePanel } from './components/debug'
 import { initializeApp } from './utils/initializeApp'
 import { userWhitelistService } from '@famapp/shared'
 import { addBorjaSchoolEvents } from './utils/addBorjaSchoolEvents'
 import type { ModuleId } from './types/navigation'
+
+// Lazy load modules for code splitting
+const TodoModule = lazy(() => import('./components/modules').then(m => ({ default: m.TodoModule })));
+const CalendarModule = lazy(() => import('./components/modules').then(m => ({ default: m.CalendarModule })));
+const GroceriesModule = lazy(() => import('./components/modules').then(m => ({ default: m.GroceriesModule })));
+const DocumentsModule = lazy(() => import('./components/modules').then(m => ({ default: m.DocumentsModule })));
+const AIDashboard = lazy(() => import('./components/dashboard/AIDashboard'));
 
 function App() {
   const [currentModule, setCurrentModule] = useState<ModuleId>('todos');
@@ -60,20 +67,27 @@ function App() {
   }, [])
 
   const renderCurrentModule = () => {
-    switch (currentModule) {
-      case 'todos':
-        return <TodoModule />;
-      case 'calendar':
-        return <CalendarModule />;
-      case 'groceries':
-        return <GroceriesModule />;
-      case 'documents':
-        return <DocumentsModule />;
-      case 'ai-dashboard':
-        return <AIDashboard />;
-      default:
-        return <TodoModule />;
-    }
+    // Wrap modules in Suspense for lazy loading
+    return (
+      <Suspense fallback={<LoadingState message="Loading module..." />}>
+        {(() => {
+          switch (currentModule) {
+            case 'todos':
+              return <TodoModule />;
+            case 'calendar':
+              return <CalendarModule />;
+            case 'groceries':
+              return <GroceriesModule />;
+            case 'documents':
+              return <DocumentsModule />;
+            case 'ai-dashboard':
+              return <AIDashboard />;
+            default:
+              return <TodoModule />;
+          }
+        })()}
+      </Suspense>
+    );
   };
 
 
@@ -88,6 +102,8 @@ function App() {
             >
               {renderCurrentModule()}
             </AppLayout>
+            {/* Performance monitoring panel for development */}
+            <PerformancePanel />
           </ProtectedRoute>
         </AuthProvider>
       </ThemeProvider>
