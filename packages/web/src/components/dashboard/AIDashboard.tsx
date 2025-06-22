@@ -1,8 +1,9 @@
-// AI-powered Dashboard component with real-time family insights
-import React, { useEffect, useState } from 'react';
+// AI-powered Dashboard component with real-time family insights and intelligent caching
+import React, { useEffect, useState, useCallback } from 'react';
 import { useAI } from '../../hooks/useAI';
 import { useI18n } from '../../hooks/useI18n';
-import { DataAggregationService, type AggregatedFamilyData, type AIResponse } from '@famapp/shared';
+import { useRealTimeData } from '../../hooks/useRealTimeData';
+import type { AggregatedFamilyData, AIResponse } from '@famapp/shared';
 import { LoadingState } from '../ui/LoadingState';
 import { ErrorMessage } from '../ui/ErrorMessage';
 import { Card } from '../ui/Card';
@@ -21,79 +22,134 @@ type DashboardSection = 'summary' | 'insights' | 'alerts' | 'recommendations' | 
 
 // Component state interface
 interface DashboardState {
-  familyData: AggregatedFamilyData | null;
   aiSummary: AIResponse | null;
-  loading: boolean;
-  error: string | null;
-  lastRefresh: Date | null;
+  aiLoading: boolean;
+  aiError: string | null;
   activeSection: DashboardSection;
+  showCacheStats: boolean;
 }
 
-// AI Dashboard component with loading states
+// AI Dashboard component with real-time data refresh and intelligent caching
 export const AIDashboard: React.FC<AIDashboardProps> = ({ className = '' }) => {
   const { t } = useI18n();
-  const { generateSummary, isHealthy, isLoading: aiLoading, error: aiError } = useAI();
+  const { generateSummary, isHealthy, isLoading: globalAiLoading, error: globalAiError } = useAI();
   
-  // Component state
+  // Real-time data hook with caching
+  const {
+    familyData,
+    isLoading: dataLoading,
+    isRefreshing,
+    error: dataError,
+    lastRefresh,
+    isStale,
+    refresh,
+    forceRefresh,
+    clearError,
+    refreshStatus,
+    cacheStats,
+    dataFreshness
+  } = useRealTimeData({
+    enableAutoRefresh: true,
+    refreshInterval: 5 * 60 * 1000, // 5 minutes
+    staleThreshold: 10 * 60 * 1000, // 10 minutes
+    enableBackgroundRefresh: true,
+    onDataChange: handleDataChange,
+    onError: handleDataError,
+    onRefreshStart: () => console.log('Dashboard data refresh started'),
+    onRefreshComplete: () => console.log('Dashboard data refresh completed')
+  });
+  
+  // Component state (reduced since data management is in useRealTimeData)
   const [state, setState] = useState<DashboardState>({
-    familyData: null,
     aiSummary: null,
-    loading: true,
-    error: null,
-    lastRefresh: null,
-    activeSection: 'summary'
+    aiLoading: false,
+    aiError: null,
+    activeSection: 'summary',
+    showCacheStats: false
   });
 
-  // Load family data and generate AI summary
-  const loadDashboardData = async () => {
-    setState(prev => ({ ...prev, loading: true, error: null }));
+  // Callback functions for real-time data hook
+  function handleDataChange(data: AggregatedFamilyData) {
+    console.log('Family data updated:', {
+      todos: data.todos.totalCount,
+      events: data.events.totalCount,
+      groceries: data.groceries.totalCount
+    });
+    
+    // Generate new AI summary when data changes
+    if (isHealthy && data) {
+      generateAISummary(data);
+    }
+  }
+  
+  function handleDataError(error: Error) {
+    console.error('Real-time data error:', error);
+    setState(prev => ({ ...prev, aiError: error.message }));
+  }
+  
+  // Generate AI summary
+  const generateAISummary = useCallback(async (data: AggregatedFamilyData) => {
+    if (!isHealthy || !data) return;
+    
+    setState(prev => ({ ...prev, aiLoading: true, aiError: null }));
     
     try {
-      // Aggregate family data
-      const dataAggregationService = new DataAggregationService();
-      const familyData = await dataAggregationService.aggregateFamilyData();
-      
-      // Generate AI summary if service is healthy
-      let aiSummary: AIResponse | null = null;
-      if (isHealthy) {
-        aiSummary = await generateSummary(familyData);
-      }
-      
+      const aiSummary = await generateSummary(data);
       setState(prev => ({
         ...prev,
-        familyData,
         aiSummary,
-        loading: false,
-        lastRefresh: new Date(),
-        error: null
+        aiLoading: false
       }));
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Failed to load dashboard data';
+      const errorMessage = error instanceof Error ? error.message : 'Failed to generate AI summary';
       setState(prev => ({
         ...prev,
-        loading: false,
-        error: errorMessage
+        aiLoading: false,
+        aiError: errorMessage
       }));
     }
-  };
+  }, [isHealthy, generateSummary]);
 
-  // Load data on mount
+  // Generate AI summary when family data is available and AI is healthy
   useEffect(() => {
-    loadDashboardData();
-  }, [isHealthy]); // Re-load if AI health status changes
+    if (familyData && isHealthy && !state.aiSummary) {
+      generateAISummary(familyData);
+    }
+  }, [familyData, isHealthy, state.aiSummary, generateAISummary]);
 
-  // Handle refresh
-  const handleRefresh = () => {
-    loadDashboardData();
-  };
+  // Handle manual refresh
+  const handleRefresh = useCallback(() => {
+    refresh();
+  }, [refresh]);
+  
+  // Handle force refresh (bypass cache)
+  const handleForceRefresh = useCallback(() => {
+    forceRefresh();
+  }, [forceRefresh]);
+  
+  // Clear errors
+  const handleClearError = useCallback(() => {
+    clearError();
+    setState(prev => ({ ...prev, aiError: null }));
+  }, [clearError]);
+  
+  // Toggle cache stats display
+  const toggleCacheStats = useCallback(() => {
+    setState(prev => ({ ...prev, showCacheStats: !prev.showCacheStats }));
+  }, []);
 
   // Handle section change
   const handleSectionChange = (section: DashboardSection) => {
     setState(prev => ({ ...prev, activeSection: section }));
   };
 
+  // Compute combined loading and error states
+  const isLoading = dataLoading || globalAiLoading;
+  const combinedError = dataError || globalAiError || state.aiError;
+  const isDataRefreshing = isRefreshing || state.aiLoading;
+  
   // Render loading state
-  if (state.loading || aiLoading) {
+  if (isLoading) {
     return (
       <div className={`ai-dashboard ${className}`}>
         <LoadingState 
@@ -116,7 +172,7 @@ export const AIDashboard: React.FC<AIDashboardProps> = ({ className = '' }) => {
 
   // Render dashboard sections
   const renderContent = () => {
-    const { familyData, aiSummary } = state;
+    const aiSummary = state.aiSummary;
     
     switch (state.activeSection) {
       case 'summary':
@@ -217,24 +273,25 @@ export const AIDashboard: React.FC<AIDashboardProps> = ({ className = '' }) => {
 
   return (
     <div className={`ai-dashboard ${className}`}>
-      {/* Dashboard Header */}
+      {/* Dashboard Header with Real-time Status */}
       <div className="dashboard-header">
         <h1>{t('dashboard.title')}</h1>
-        <div className="dashboard-actions">
-          {state.lastRefresh && (
-            <span className="last-refresh">
-              {t('dashboard.lastRefresh')}: {state.lastRefresh.toLocaleTimeString()}
-            </span>
-          )}
-          <Button
-            onClick={handleRefresh}
-            variant="secondary"
-            disabled={state.loading}
-          >
-            {t('dashboard.refresh')}
-          </Button>
-        </div>
+        {renderStatusIndicator()}
       </div>
+      
+      {/* Cache Statistics Panel */}
+      {renderCacheStats()}
+      
+      {/* Error Messages */}
+      {combinedError && familyData && (
+        <div className="error-banner">
+          <ErrorMessage 
+            message={combinedError}
+            onRetry={handleClearError}
+            severity="warning"
+          />
+        </div>
+      )}
 
       {/* Section Navigation */}
       <div className="dashboard-nav">
