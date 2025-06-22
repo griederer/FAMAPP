@@ -11,6 +11,7 @@ import { Button } from '../ui/Button';
 import { SmartCards } from './SmartCards';
 import { ChatInterface } from './ChatInterface';
 import { SmartAlerts } from './SmartAlerts';
+import { AnalyticsPanel } from './AnalyticsPanel';
 import './AIDashboard.css';
 
 // Component props
@@ -19,7 +20,7 @@ interface AIDashboardProps {
 }
 
 // Dashboard sections
-type DashboardSection = 'summary' | 'insights' | 'alerts' | 'recommendations' | 'chat';
+type DashboardSection = 'summary' | 'insights' | 'alerts' | 'analytics' | 'recommendations' | 'chat';
 
 // Component state interface
 interface DashboardState {
@@ -144,6 +145,55 @@ export const AIDashboard: React.FC<AIDashboardProps> = ({ className = '' }) => {
     setState(prev => ({ ...prev, activeSection: section }));
   };
 
+  // Render status indicator
+  const renderStatusIndicator = () => (
+    <div className="status-indicator">
+      <div className={`status-dot ${isDataRefreshing ? 'refreshing' : 'idle'}`}></div>
+      <span className="status-text">
+        {isDataRefreshing ? t('dashboard.refreshing') : t('dashboard.ready')}
+      </span>
+      {lastRefresh && (
+        <span className="last-refresh">
+          {t('dashboard.lastRefresh')}: {lastRefresh.toLocaleTimeString()}
+        </span>
+      )}
+    </div>
+  );
+
+  // Render cache statistics
+  const renderCacheStats = () => {
+    if (!state.showCacheStats || !cacheStats) return null;
+
+    return (
+      <div className="cache-stats-panel">
+        <div className="cache-stats-header">
+          <h3>{t('dashboard.cacheStats')}</h3>
+          <Button 
+            variant="ghost" 
+            size="small" 
+            onClick={toggleCacheStats}
+          >
+            ✕
+          </Button>
+        </div>
+        <div className="cache-stats-grid">
+          <div className="cache-stat">
+            <span className="stat-label">{t('dashboard.cacheHits')}</span>
+            <span className="stat-value">{cacheStats.hits || 0}</span>
+          </div>
+          <div className="cache-stat">
+            <span className="stat-label">{t('dashboard.cacheMisses')}</span>
+            <span className="stat-value">{cacheStats.misses || 0}</span>
+          </div>
+          <div className="cache-stat">
+            <span className="stat-label">{t('dashboard.cacheSize')}</span>
+            <span className="stat-value">{cacheStats.size || 0}</span>
+          </div>
+        </div>
+      </div>
+    );
+  };
+
   // Compute combined loading and error states
   const isLoading = dataLoading || globalAiLoading;
   const combinedError = dataError || globalAiError || state.aiError;
@@ -161,11 +211,12 @@ export const AIDashboard: React.FC<AIDashboardProps> = ({ className = '' }) => {
   }
 
   // Render error state
-  if (state.error || (!isHealthy && !state.aiSummary)) {
+  if (combinedError && !familyData) {
     return (
       <div className={`ai-dashboard ${className}`}>
         <ErrorMessage 
-          message={state.error || aiError || t('dashboard.ai.unavailable')}
+          message={combinedError}
+          onRetry={handleClearError}
         />
       </div>
     );
@@ -230,6 +281,20 @@ export const AIDashboard: React.FC<AIDashboardProps> = ({ className = '' }) => {
                 className="dashboard-smart-alerts"
                 maxDisplayAlerts={15}
                 enableActions={true}
+              />
+            )}
+          </div>
+        );
+      
+      case 'analytics':
+        return (
+          <div className="dashboard-analytics">
+            {familyData && (
+              <AnalyticsPanel 
+                familyData={familyData}
+                className="dashboard-analytics-panel"
+                period="weekly"
+                showDetailedView={true}
               />
             )}
           </div>
@@ -318,6 +383,12 @@ export const AIDashboard: React.FC<AIDashboardProps> = ({ className = '' }) => {
           onClick={() => handleSectionChange('alerts')}
         >
           {t('dashboard.nav.alerts')}
+        </button>
+        <button
+          className={`nav-button ${state.activeSection === 'analytics' ? 'active' : ''}`}
+          onClick={() => handleSectionChange('analytics')}
+        >
+          {t('dashboard.nav.analytics')}
         </button>
         <button
           className={`nav-button ${state.activeSection === 'recommendations' ? 'active' : ''}`}
