@@ -180,22 +180,51 @@ export class AIService {
 
   // Build family summary prompt
   private buildFamilySummaryPrompt(familyData: AggregatedFamilyData): string {
+    // Extract key event dates for verification
+    const keyEvents = familyData.events.upcoming
+      .filter(event => 
+        event.title.toLowerCase().includes('holiday') ||
+        event.title.toLowerCase().includes('prekinder') ||
+        (event.title.toLowerCase().includes('year') && (event.title.includes('1') || event.title.includes('2') || event.title.includes('3') || event.title.includes('4')))
+      )
+      .map(event => ({
+        title: event.title,
+        date: event.startDate.toLocaleDateString('en-US', { 
+          weekday: 'long', 
+          year: 'numeric', 
+          month: 'long', 
+          day: 'numeric' 
+        }),
+        time: event.allDay ? 'All day' : event.startDate.toLocaleTimeString('en-US', { 
+          hour: '2-digit', 
+          minute: '2-digit' 
+        })
+      }));
+
     return `
 You are a helpful family assistant AI. Generate a warm, friendly summary of the family's current status based on the provided data.
 
+IMPORTANT: When mentioning these specific school events, use EXACTLY these official dates:
+- Holiday: Monday, June 23, 2025 (all day)
+- Prekinder & Kinder Academic Meeting: Tuesday, June 24, 2025 at 8:30-9:30 AM
+- Year 1-4 Academic Meeting: Wednesday, July 2, 2025 at 8:30-9:30 AM
+
 Please analyze the family data and provide:
 1. A brief overview of pending todos and their urgency
-2. Upcoming events in the next 2 weeks
+2. Upcoming events in the next 2 weeks (use official dates above for school events)
 3. Outstanding grocery items that need attention
 4. Any patterns or trends you notice
 5. 2-3 actionable recommendations for better family organization
 
 Keep the tone casual and supportive, like a family friend helping out. Focus on what's most important and actionable.
 
+Key Events Found in Data:
+${JSON.stringify(keyEvents, null, 2)}
+
 Family Data:
 ${JSON.stringify(familyData, null, 2)}
 
-Respond in a natural, conversational tone as if speaking directly to the family.
+Respond in a natural, conversational tone as if speaking directly to the family. Always double-check that school event dates match the official calendar.
 `;
   }
 

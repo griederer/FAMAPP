@@ -248,22 +248,39 @@ export class DataAggregationService {
 
       const eventsSnapshot = await getDocs(eventsQuery);
       
-      // Define date extraction function first
+      // Standardized date extraction function - only use startDate field
       const getEventDate = (event: any) => {
-        // Try different common date field names
-        const dateValue = event.date || event.startDate || event.eventDate || event.dateTime;
+        // Use ONLY startDate to avoid confusion - this is the standard field
+        const dateValue = event.startDate;
         if (dateValue) {
           // Handle Firestore Timestamp
           if (dateValue.toDate) {
             return dateValue.toDate();
           }
-          // Handle string dates
+          // Handle string dates as fallback
           return new Date(dateValue);
         }
+        console.warn('Event missing startDate field:', event.title || event.id);
         return null;
       };
       
-      // Events loaded successfully
+      // Debug: Show what's actually in Firebase right now
+      console.log('=== FIREBASE EVENTS DEBUG ===');
+      console.log('Total events found:', eventsSnapshot.docs.length);
+      eventsSnapshot.docs.forEach((doc, index) => {
+        const eventData = doc.data();
+        const eventDate = getEventDate(eventData);
+        console.log(`Event ${index + 1}:`, {
+          id: doc.id,
+          title: eventData.title,
+          date: eventDate ? eventDate.toLocaleDateString('es-ES') : 'No date',
+          time: eventDate ? eventDate.toLocaleTimeString('es-ES') : 'No time',
+          allDay: eventData.allDay,
+          assignedTo: eventData.assignedTo,
+          createdBy: eventData.createdBy
+        });
+      });
+      console.log('=== END FIREBASE DEBUG ===');
       
       const allEvents: CalendarEvent[] = eventsSnapshot.docs.map(doc => ({
         id: doc.id,

@@ -202,6 +202,31 @@ export class DataCacheService {
     console.log(`Cache cleared: ${keyCount} entries removed (${reason})`);
   }
 
+  // Clear specific cache entries (useful for calendar updates)
+  clearCacheByPattern(pattern: string): void {
+    const keysToDelete: string[] = [];
+    
+    this.cache.forEach((_, key) => {
+      if (key.includes(pattern)) {
+        keysToDelete.push(key);
+      }
+    });
+    
+    keysToDelete.forEach(key => {
+      this.invalidate(key, 'manual');
+    });
+    
+    console.log(`🗑️ Cleared ${keysToDelete.length} cache entries matching pattern: ${pattern}`);
+  }
+
+  // Clear calendar-specific cache
+  clearCalendarCache(): void {
+    this.clearCacheByPattern('events');
+    this.clearCacheByPattern('calendar');
+    this.clearCacheByPattern('aggregated-family-data');
+    console.log('📅 Calendar cache cleared');
+  }
+
   // Get cache statistics
   getStats(): CacheStats {
     this.updateAverageAge();
