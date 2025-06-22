@@ -81,19 +81,41 @@ export class DataAggregationService {
       const startTime = Date.now();
 
       // Fetch all data in parallel for performance
-      const [
-        todosData,
-        eventsData,
-        groceriesData,
-        documentsData,
-        familyMembers
-      ] = await Promise.all([
-        this.aggregateTodos(fullConfig),
-        this.aggregateEvents(fullConfig),
-        this.aggregateGroceries(fullConfig),
-        this.aggregateDocuments(fullConfig),
-        this.getFamilyMembers()
-      ]);
+      let todosData, eventsData, groceriesData, documentsData, familyMembers;
+      
+      try {
+        [
+          todosData,
+          eventsData,
+          groceriesData,
+          documentsData,
+          familyMembers
+        ] = await Promise.all([
+          this.aggregateTodos(fullConfig).catch(err => {
+            console.error('Failed to aggregate todos:', err);
+            throw new Error(`Todos aggregation failed: ${err.message}`);
+          }),
+          this.aggregateEvents(fullConfig).catch(err => {
+            console.error('Failed to aggregate events:', err);
+            throw new Error(`Events aggregation failed: ${err.message}`);
+          }),
+          this.aggregateGroceries(fullConfig).catch(err => {
+            console.error('Failed to aggregate groceries:', err);
+            throw new Error(`Groceries aggregation failed: ${err.message}`);
+          }),
+          this.aggregateDocuments(fullConfig).catch(err => {
+            console.error('Failed to aggregate documents:', err);
+            throw new Error(`Documents aggregation failed: ${err.message}`);
+          }),
+          this.getFamilyMembers().catch(err => {
+            console.error('Failed to get family members:', err);
+            throw new Error(`Family members retrieval failed: ${err.message}`);
+          })
+        ]);
+      } catch (error) {
+        console.error('Promise.all failed in data aggregation:', error);
+        throw error;
+      }
 
       const endTime = Date.now();
       const aggregationTime = endTime - startTime;
@@ -121,8 +143,15 @@ export class DataAggregationService {
         summary
       };
     } catch (error) {
+      console.error('Data aggregation error details:', {
+        error,
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+        config: fullConfig
+      });
+      
       throw new DataAggregationError(
-        'Failed to aggregate family data',
+        `Failed to aggregate family data: ${error instanceof Error ? error.message : 'Unknown error'}`,
         'AGGREGATION_FAILED',
         error
       );
