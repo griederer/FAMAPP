@@ -2,7 +2,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useAI } from '../../hooks/useAI';
 import { useI18n } from '../../hooks/useI18n';
-import { DataAggregationService, type AggregatedFamilyData, type ConversationMessage } from '@famapp/shared';
+import { DataAggregationService, type AggregatedFamilyData, type ConversationMessage, chatCommandService, ChatCommandService } from '@famapp/shared';
 import { Button } from '../ui/Button';
 import { LoadingState } from '../ui/LoadingState';
 import './ChatInterface.css';
@@ -22,6 +22,7 @@ interface ChatInterfaceProps {
   familyData?: AggregatedFamilyData;
   initialMessage?: string;
   isGeneratingInitial?: boolean;
+  onDataRefresh?: () => void;
 }
 
 // Chat interface component
@@ -29,7 +30,8 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
   className = '', 
   familyData,
   initialMessage,
-  isGeneratingInitial = false
+  isGeneratingInitial = false,
+  onDataRefresh
 }) => {
   const { t } = useI18n();
   const { askQuestion, isHealthy, isLoading: aiLoading } = useAI();
@@ -101,10 +103,11 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
   const handleSendMessage = async () => {
     if (!inputValue.trim() || !isHealthy || !currentFamilyData) return;
     
+    const userInput = inputValue.trim();
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
       type: 'user',
-      content: inputValue.trim(),
+      content: userInput,
       timestamp: new Date()
     };
     
@@ -114,6 +117,34 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
     setIsTyping(true);
     
     try {
+      // Check if this is a command first
+      if (ChatCommandService.isCommand(userInput)) {
+        console.log('🤖 Command detected:', userInput);
+        
+        // Process the command
+        const commandResult = await chatCommandService.processCommand(userInput);
+        
+        const commandResponseMessage: ChatMessage = {
+          id: (Date.now() + 1).toString(),
+          type: 'assistant',
+          content: commandResult.message,
+          timestamp: new Date()
+        };
+        
+        setMessages(prev => [...prev, commandResponseMessage]);
+        
+        // If command was successful, also refresh the family data
+        if (commandResult.success && onDataRefresh) {
+          // Small delay to allow Firebase to process the new data
+          setTimeout(() => {
+            onDataRefresh();
+          }, 1000);
+        }
+        
+        setIsTyping(false);
+        return;
+      }
+
       // Convert chat messages to conversation history format
       const history: ConversationMessage[] = messages.map(msg => ({
         id: msg.id,
@@ -123,7 +154,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
       }));
       
       // Get AI response with conversation history
-      const response = await askQuestion(inputValue.trim(), currentFamilyData, history);
+      const response = await askQuestion(userInput, currentFamilyData, history);
       
       const assistantMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),

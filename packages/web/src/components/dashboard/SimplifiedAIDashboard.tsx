@@ -193,6 +193,7 @@ Analiza los datos profundamente y proporciona insights que realmente ayuden a la
             familyData={familyData}
             initialMessage={initialSummary || '¡Hola! ¿Qué más quieres saber de tu planificación semanal?'}
             isGeneratingInitial={isGeneratingSummary}
+            onDataRefresh={refresh}
             className="dashboard-chat"
           />
         )}
