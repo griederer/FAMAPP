@@ -52,14 +52,24 @@ export const SimplifiedAIDashboard: React.FC<SimplifiedAIDashboardProps> = ({ cl
         await initializeAIService();
         console.log('✅ AI Service ready for Simplified Dashboard');
         
-        // Load fresh start script for complete calendar reset
+        // Load diagnostic and solution scripts
         try {
-          const scriptResponse = await fetch('/src/scripts/freshStart.js');
-          const scriptText = await scriptResponse.text();
-          eval(scriptText);
-          console.log('🔄 Fresh start script loaded successfully');
+          // Load diagnostic script
+          const diagnosticResponse = await fetch('/src/scripts/diagnosticoPipeline.js');
+          const diagnosticText = await diagnosticResponse.text();
+          eval(diagnosticText);
+          
+          // Load solution script
+          const solutionResponse = await fetch('/src/scripts/solucionDefinitiva.js');
+          const solutionText = await solutionResponse.text();
+          eval(solutionText);
+          
+          console.log('🔬 Diagnostic and solution scripts loaded successfully');
+          console.log('Available commands:');
+          console.log('  • window.diagnosticarPipelineCompleto() - Full pipeline diagnosis');
+          console.log('  • window.implementarSolucionDefinitiva() - Complete solution');
         } catch (error) {
-          console.error('❌ Failed to load fresh start script:', error);
+          console.error('❌ Failed to load diagnostic scripts:', error);
           // Load inline calendar audit and fix functions
           const calendarEventAudit = async () => {
             console.log('🔍 CALENDAR AUDIT STARTING...');

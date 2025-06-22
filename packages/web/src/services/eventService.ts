@@ -15,6 +15,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { authService } from './authService';
+import { getDataCacheService } from '@famapp/shared';
 import type { Unsubscribe } from 'firebase/firestore';
 import type { FamilyMember } from '../types/theme';
 
@@ -60,6 +61,7 @@ export interface UpdateEventData {
 
 class EventService {
   private readonly COLLECTION_NAME = 'events';
+  private cacheService = getDataCacheService();
 
   // Create a new event
   async createEvent(data: CreateEventData): Promise<string> {
@@ -107,6 +109,11 @@ class EventService {
 
       const docRef = await addDoc(collection(db, this.COLLECTION_NAME), eventData);
       console.log(`✅ Event created: ${data.title} on ${data.startDate.toLocaleDateString()}`);
+      
+      // Clear cache to ensure fresh data
+      this.cacheService.clearCalendarCache();
+      console.log('📅 Calendar cache cleared after event creation');
+      
       return docRef.id;
     } catch (error) {
       console.error('Error creating event:', error);
@@ -147,6 +154,10 @@ class EventService {
       }
 
       await updateDoc(eventRef, updateData);
+      
+      // Clear cache to ensure fresh data
+      this.cacheService.clearCalendarCache();
+      console.log('📅 Calendar cache cleared after event update');
     } catch (error) {
       console.error('Error updating event:', error);
       throw error;
@@ -157,6 +168,10 @@ class EventService {
   async deleteEvent(id: string): Promise<void> {
     try {
       await deleteDoc(doc(db, this.COLLECTION_NAME, id));
+      
+      // Clear cache to ensure fresh data
+      this.cacheService.clearCalendarCache();
+      console.log('📅 Calendar cache cleared after event deletion');
     } catch (error) {
       console.error('Error deleting event:', error);
       throw error;
