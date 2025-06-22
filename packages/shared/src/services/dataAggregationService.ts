@@ -62,7 +62,16 @@ export class DataAggregationService {
   };
 
   private get db() {
-    return getFirebaseServices().db;
+    try {
+      const services = getFirebaseServices();
+      if (!services || !services.db) {
+        throw new Error('Firebase services not initialized or database not available');
+      }
+      return services.db;
+    } catch (error) {
+      console.error('Failed to get Firebase database:', error);
+      throw new Error(`Firebase database not available: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    }
   }
 
   // Main method to aggregate all family data for AI processing
@@ -166,7 +175,7 @@ export class DataAggregationService {
 
       // Fetch all todos
       const todosQuery = query(
-        collection(this.db, 'family_todos'),
+        collection(this.db, 'todos'),
         orderBy('createdAt', 'desc'),
         limit(config.maxItemsPerCategory)
       );
@@ -208,8 +217,15 @@ export class DataAggregationService {
         memberStats
       };
     } catch (error) {
+      console.error('Todo aggregation error details:', {
+        error,
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+        config
+      });
+      
       throw new DataAggregationError(
-        'Failed to aggregate todo data',
+        `Failed to aggregate todo data: ${error instanceof Error ? error.message : 'Unknown error'}`,
         'TODO_AGGREGATION_FAILED',
         error
       );
@@ -226,7 +242,7 @@ export class DataAggregationService {
 
       // Fetch upcoming events
       const eventsQuery = query(
-        collection(this.db, 'family_events'),
+        collection(this.db, 'events'),
         where('date', '>=', Timestamp.fromDate(now)),
         orderBy('date', 'asc'),
         limit(config.maxItemsPerCategory)
@@ -261,8 +277,15 @@ export class DataAggregationService {
         memberEvents
       };
     } catch (error) {
+      console.error('Event aggregation error details:', {
+        error,
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+        config
+      });
+      
       throw new DataAggregationError(
-        'Failed to aggregate event data',
+        `Failed to aggregate event data: ${error instanceof Error ? error.message : 'Unknown error'}`,
         'EVENT_AGGREGATION_FAILED',
         error
       );
@@ -277,7 +300,7 @@ export class DataAggregationService {
 
       // Fetch all grocery items
       const groceriesQuery = query(
-        collection(this.db, 'family_groceries'),
+        collection(this.db, 'grocery_items'),
         orderBy('createdAt', 'desc'),
         limit(config.maxItemsPerCategory)
       );
@@ -319,8 +342,15 @@ export class DataAggregationService {
         categoryStats
       };
     } catch (error) {
+      console.error('Grocery aggregation error details:', {
+        error,
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : undefined,
+        config
+      });
+      
       throw new DataAggregationError(
-        'Failed to aggregate grocery data',
+        `Failed to aggregate grocery data: ${error instanceof Error ? error.message : 'Unknown error'}`,
         'GROCERY_AGGREGATION_FAILED',
         error
       );
@@ -679,7 +709,7 @@ export class DataAggregationService {
     try {
       // Test basic Firestore connectivity
       const testQuery = query(
-        collection(this.db, 'family_todos'),
+        collection(this.db, 'todos'),
         limit(1)
       );
       
