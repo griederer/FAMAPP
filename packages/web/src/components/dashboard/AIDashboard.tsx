@@ -13,6 +13,7 @@ import { ChatInterface } from './ChatInterface';
 import { SmartAlerts } from './SmartAlerts';
 import { AnalyticsPanel } from './AnalyticsPanel';
 import { GoalTracker } from './GoalTracker';
+import { SmartRecommendations } from './SmartRecommendations';
 import './AIDashboard.css';
 
 // Component props
@@ -304,24 +305,13 @@ export const AIDashboard: React.FC<AIDashboardProps> = ({ className = '' }) => {
       case 'recommendations':
         return (
           <div className="dashboard-recommendations">
-            <h3>{t('dashboard.recommendations.title')}</h3>
-            {familyData?.summary?.recommendations && familyData.summary.recommendations.length > 0 ? (
-              <div className="recommendations-grid">
-                {familyData.summary.recommendations.map((rec, index) => (
-                  <Card key={index} className="recommendation-card">
-                    <h4>{rec.title}</h4>
-                    <p>{rec.description}</p>
-                    {rec.estimatedImpact && (
-                      <div className="recommendation-impact">
-                        <span className="impact-label">{t('dashboard.impact')}:</span>
-                        <span className="impact-value">{rec.estimatedImpact}</span>
-                      </div>
-                    )}
-                  </Card>
-                ))}
-              </div>
-            ) : (
-              <p className="no-recommendations">{t('dashboard.recommendations.none')}</p>
+            {familyData && (
+              <SmartRecommendations 
+                familyData={familyData}
+                className="dashboard-smart-recommendations"
+                maxDisplayRecommendations={12}
+                enableActions={true}
+              />
             )}
           </div>
         );

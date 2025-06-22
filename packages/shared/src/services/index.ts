@@ -15,3 +15,4 @@ export * from './realTimeRefreshService';
 export * from './smartAlertsService';
 export * from './familyAnalyticsService';
 export * from './goalTrackingService';
+export * from './smartRecommendationsService';
