@@ -74,21 +74,21 @@ const fixCalendarEvents = async () => {
         color: "#e53e3e"
       },
       {
-        title: "Holiday",
-        startDate: new Date(2025, 5, 25), // June 25 (Wednesday)
-        endDate: new Date(2025, 5, 25),
+        title: "Holiday (no hay clases)",
+        startDate: new Date(2025, 5, 23), // June 23 (Monday)
+        endDate: new Date(2025, 5, 23),
         isAllDay: true,
-        description: "School holiday",
+        description: "School holiday - no classes",
         assignedTo: "Borja",
         category: "holiday",
         color: "#e53e3e"
       },
       {
-        title: "Prekinder & Kinder Academic Meeting with Parents",
-        startDate: new Date(2025, 5, 26, 15, 30), // June 26, 3:30 PM
-        endDate: new Date(2025, 5, 26, 16, 30),
+        title: "Prekinder & Kinder Academic Meeting with Parents - M/S Dining Hall",
+        startDate: new Date(2025, 5, 24, 8, 30), // June 24, 8:30 AM (Tuesday)
+        endDate: new Date(2025, 5, 24, 9, 30),
         isAllDay: false,
-        description: "Academic meeting for Prekinder & Kinder parents - M/S Dining Hall",
+        description: "Taller de Apoderados - M/S Dining Hall",
         location: "M/S Dining Hall",
         assignedTo: "Borja",
         category: "education",
@@ -97,11 +97,11 @@ const fixCalendarEvents = async () => {
       
       // July 2025 Events
       {
-        title: "Year 1, 2, 3, 4 Academic Meeting with Parents",
-        startDate: new Date(2025, 6, 2, 15, 30), // July 2, 3:30 PM (Tuesday)
-        endDate: new Date(2025, 6, 2, 16, 30),
+        title: "Year 1, 2, 3, 4 Academic Meeting with Parents - M/S Dining Hall",
+        startDate: new Date(2025, 6, 2, 8, 30), // July 2, 8:30 AM (Wednesday)
+        endDate: new Date(2025, 6, 2, 9, 30),
         isAllDay: false,
-        description: "Academic meeting for Year 1-4 parents - M/S Dining Hall",
+        description: "Taller de Apoderados - M/S Dining Hall",
         location: "M/S Dining Hall",
         assignedTo: "Borja",
         category: "education",
