@@ -263,23 +263,7 @@ export class DataAggregationService {
         return null;
       };
       
-      // Debug: Log event data structure and dates
-      if (eventsSnapshot.docs.length > 0) {
-        console.log('=== EVENT DEBUGGING ===');
-        eventsSnapshot.docs.forEach((doc, index) => {
-          const eventData = doc.data();
-          const eventDate = getEventDate(eventData);
-          console.log(`Event ${index + 1}:`, {
-            title: eventData.title || eventData.name || 'No title',
-            rawDate: eventData.date || eventData.startDate || eventData.eventDate,
-            parsedDate: eventDate,
-            formattedDate: eventDate ? eventDate.toLocaleString('es-ES') : 'Invalid date',
-            allFields: Object.keys(eventData)
-          });
-        });
-        console.log('Current date for comparison:', now.toLocaleString('es-ES'));
-        console.log('=== END EVENT DEBUGGING ===');
-      }
+      // Events loaded successfully
       
       const allEvents: CalendarEvent[] = eventsSnapshot.docs.map(doc => ({
         id: doc.id,
