@@ -1,0 +1,114 @@
+/* Simplified AI Dashboard Styles */
+
+.ai-dashboard.simplified {
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 20px;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+}
+
+.dashboard-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.dashboard-header h2 {
+  color: #2d3748;
+  font-size: 28px;
+  margin: 0;
+}
+
+/* Visual Summary */
+.visual-summary {
+  display: flex;
+  gap: 20px;
+  justify-content: center;
+  margin-bottom: 30px;
+  flex-wrap: wrap;
+}
+
+.metric-card {
+  background: white;
+  border-radius: 12px;
+  padding: 20px;
+  min-width: 120px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.metric-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.metric-card.todos {
+  border-left: 4px solid #3182ce;
+}
+
+.metric-card.appointments {
+  border-left: 4px solid #38a169;
+}
+
+.metric-card.groceries {
+  border-left: 4px solid #d69e2e;
+}
+
+.metric-icon {
+  font-size: 24px;
+}
+
+.metric-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.metric-number {
+  font-size: 32px;
+  font-weight: bold;
+  color: #2d3748;
+  line-height: 1;
+}
+
+.metric-label {
+  font-size: 14px;
+  color: #718096;
+  margin-top: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Chat Section */
+.chat-section {
+  background: white;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border: 1px solid #e2e8f0;
+  overflow: hidden;
+}
+
+/* Mobile Responsive */
+@media (max-width: 768px) {
+  .ai-dashboard.simplified {
+    padding: 15px;
+  }
+  
+  .visual-summary {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .metric-card {
+    width: 100%;
+    max-width: 300px;
+    justify-content: center;
+  }
+  
+  .dashboard-header h2 {
+    font-size: 24px;
+  }
+}

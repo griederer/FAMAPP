@@ -20,12 +20,16 @@ interface ChatMessage {
 interface ChatInterfaceProps {
   className?: string;
   familyData?: AggregatedFamilyData;
+  initialMessage?: string;
+  isGeneratingInitial?: boolean;
 }
 
 // Chat interface component
 export const ChatInterface: React.FC<ChatInterfaceProps> = ({ 
   className = '', 
-  familyData 
+  familyData,
+  initialMessage,
+  isGeneratingInitial = false
 }) => {
   const { t } = useI18n();
   const { askQuestion, isHealthy, isLoading: aiLoading } = useAI();
@@ -48,6 +52,34 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages]);
+
+  // Handle initial message
+  useEffect(() => {
+    if (initialMessage && messages.length === 0) {
+      const initialChatMessage: ChatMessage = {
+        id: 'initial-summary',
+        type: 'assistant',
+        content: initialMessage + '\n\n¿Qué más quieres saber de tu planificación semanal?',
+        timestamp: new Date(),
+        isLoading: false
+      };
+      setMessages([initialChatMessage]);
+    }
+  }, [initialMessage, messages.length]);
+
+  // Show loading state for initial summary generation
+  useEffect(() => {
+    if (isGeneratingInitial && messages.length === 0) {
+      const loadingMessage: ChatMessage = {
+        id: 'loading-initial',
+        type: 'assistant',
+        content: 'Generando tu resumen semanal...',
+        timestamp: new Date(),
+        isLoading: true
+      };
+      setMessages([loadingMessage]);
+    }
+  }, [isGeneratingInitial, messages.length]);
   
   // Load family data if not provided
   useEffect(() => {

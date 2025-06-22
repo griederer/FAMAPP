@@ -17,7 +17,7 @@ const TodoModule = lazy(() => import('./components/modules').then(m => ({ defaul
 const CalendarModule = lazy(() => import('./components/modules').then(m => ({ default: m.CalendarModule })));
 const GroceriesModule = lazy(() => import('./components/modules').then(m => ({ default: m.GroceriesModule })));
 const DocumentsModule = lazy(() => import('./components/modules').then(m => ({ default: m.DocumentsModule })));
-const AIDashboard = lazy(() => import('./components/dashboard/AIDashboard'));
+const AIDashboard = lazy(() => import('./components/dashboard/SimplifiedAIDashboard').then(m => ({ default: m.default || m.SimplifiedAIDashboard })));
 
 function App() {
   const [currentModule, setCurrentModule] = useState<ModuleId>('todos');
