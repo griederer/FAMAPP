@@ -38,6 +38,19 @@ service cloud.firestore {
       allow read, write: if isAuthenticated();
     }
     
+    // AI Dashboard collections - acceso completo para usuarios autenticados
+    match /family_todos/{todoId} {
+      allow read, write: if isAuthenticated();
+    }
+    
+    match /family_events/{eventId} {
+      allow read, write: if isAuthenticated();
+    }
+    
+    match /family_groceries/{groceryId} {
+      allow read, write: if isAuthenticated();
+    }
+    
     // Users collection - solo su propio documento
     match /users/{userId} {
       allow read, write: if isAuthenticated() && request.auth.uid == userId;
