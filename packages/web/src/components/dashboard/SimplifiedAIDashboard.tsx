@@ -78,20 +78,36 @@ export const SimplifiedAIDashboard: React.FC<SimplifiedAIDashboardProps> = ({ cl
     setIsGeneratingSummary(true);
     
     try {
-      // Create a detailed context for initial summary
+      // Create a detailed context for initial summary using Sonnet 4's advanced capabilities
       const summaryPrompt = `
-Genera un resumen en español para la familia, estructurado exactamente así:
+Eres un asistente familiar inteligente con acceso completo a los datos de planificación familiar. Analiza la información y genera un resumen estructurado, cálido y útil en español.
+
+**ESTRUCTURA REQUERIDA:**
 
 **📋 TODOS PENDIENTES:**
-[Resume los todos más importantes y urgentes, menciona cuántos hay en total]
+- Analiza prioridades y urgencias
+- Menciona el número total y destaca los 2-3 más importantes
+- Identifica patrones o tendencias (si alguien está sobrecargado, tareas vencidas, etc.)
 
 **📅 CALENDARIO PRÓXIMAS 2 SEMANAS:**
-[Lista los eventos más importantes que vienen, menciona fechas específicas]
+- Lista eventos cronológicamente con fechas exactas
+- Identifica conflictos potenciales o días muy ocupados
+- Menciona eventos escolares, citas importantes, y festividades
+- Da contexto sobre la carga de trabajo semanal
 
 **🛒 GROCERIES PENDIENTES:**
-[Menciona los items más importantes de la lista de compras]
+- Organiza por urgencia y categorías lógicas
+- Sugiere si hay patrones (comidas repetitivas, faltantes frecuentes)
+- Identifica items críticos vs. opcionales
 
-Mantén un tono casual y amigable, como un asistente familiar.
+**TONO Y ESTILO:**
+- Conversacional y amigable, como un amigo cercano de la familia
+- Usa emojis ocasionales pero no en exceso
+- Sé específico con nombres, fechas y números
+- Ofrece insights útiles, no solo lista datos
+- Termina con una observación positiva o sugerencia práctica
+
+Analiza los datos profundamente y proporciona insights que realmente ayuden a la familia a organizarse mejor.
 `;
 
       const aiResponse = await generateSummary(data);

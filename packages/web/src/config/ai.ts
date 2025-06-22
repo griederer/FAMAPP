@@ -129,22 +129,22 @@ export async function checkAIServiceHealth(): Promise<boolean> {
 // Export configuration utilities
 export { validateEnvironmentConfig };
 
-// Environment-specific configuration presets
+// Environment-specific configuration presets - Upgraded to Sonnet 4
 export const ENVIRONMENT_PRESETS = {
   development: {
-    model: 'claude-3-haiku-20240307',
-    maxTokens: 1000,
-    temperature: 0.7,
+    model: 'claude-3-5-sonnet-20241022',
+    maxTokens: 2000,
+    temperature: 0.6,
     debug: true
   },
   staging: {
-    model: 'claude-3-haiku-20240307',
-    maxTokens: 1500,
+    model: 'claude-3-5-sonnet-20241022',
+    maxTokens: 2000,
     temperature: 0.6,
     debug: false
   },
   production: {
-    model: 'claude-3-haiku-20240307',
+    model: 'claude-3-5-sonnet-20241022',
     maxTokens: 2000,
     temperature: 0.5,
     debug: false
