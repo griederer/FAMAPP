@@ -52,14 +52,14 @@ export const SimplifiedAIDashboard: React.FC<SimplifiedAIDashboardProps> = ({ cl
         await initializeAIService();
         console.log('✅ AI Service ready for Simplified Dashboard');
         
-        // Load calendar audit and fix script
+        // Load fresh start script for complete calendar reset
         try {
-          const scriptResponse = await fetch('/src/scripts/calendarEventAudit.js');
+          const scriptResponse = await fetch('/src/scripts/freshStart.js');
           const scriptText = await scriptResponse.text();
           eval(scriptText);
-          console.log('🔧 Calendar audit script loaded successfully');
+          console.log('🔄 Fresh start script loaded successfully');
         } catch (error) {
-          console.error('❌ Failed to load calendar audit script:', error);
+          console.error('❌ Failed to load fresh start script:', error);
           // Load inline calendar audit and fix functions
           const calendarEventAudit = async () => {
             console.log('🔍 CALENDAR AUDIT STARTING...');
@@ -258,13 +258,15 @@ Eres un asistente familiar inteligente con acceso completo a los datos de planif
 
 **CONTEXTO ACTUAL:**
 - Hoy es domingo 22 de junio de 2025
-- DISTINGUE CLARAMENTE entre tipos de eventos:
-  * "Holiday" o "Feriado" = día festivo/feriado nacional o religioso
-  * "Meeting", "Academic Meeting", "Reunión", "Prekinder & Kinder Academic Meeting" = reuniones de trabajo/escolares (NO son feriados)
-  * "Birthday", "Cumpleaños" = celebraciones personales
-  * "Appointment", "Cita" = citas médicas o profesionales
-- NO confundas reuniones académicas o de trabajo con feriados/días festivos
-- Si hay un evento llamado "Prekinder & Kinder Academic Meeting" es una reunión escolar, NO un feriado
+- Los eventos están cargados directamente del PDF oficial del colegio Craighouse School
+- FECHAS EXACTAS de eventos clave (del PDF oficial):
+  * Holiday: Lunes 23 de junio, 2025 (todo el día)
+  * Prekinder & Kinder Academic Meeting: Martes 24 de junio, 2025, 8:30-9:30 AM
+  * Year 1-4 Academic Meeting: Miércoles 2 de julio, 2025, 8:30-9:30 AM
+- TIPOS DE EVENTOS:
+  * "Holiday" = feriado escolar (no hay clases)
+  * "Academic Meeting" = reuniones con apoderados
+  * Todos los horarios están en formato 24 horas según el PDF oficial
 
 **ESTRUCTURA REQUERIDA:**
 
