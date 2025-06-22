@@ -75,8 +75,8 @@ const fixCalendarEvents = async () => {
       },
       {
         title: "Holiday",
-        startDate: new Date(2025, 5, 23), // June 23
-        endDate: new Date(2025, 5, 23),
+        startDate: new Date(2025, 5, 25), // June 25 (Wednesday)
+        endDate: new Date(2025, 5, 25),
         isAllDay: true,
         description: "School holiday",
         assignedTo: "Borja",
@@ -85,8 +85,8 @@ const fixCalendarEvents = async () => {
       },
       {
         title: "Prekinder & Kinder Academic Meeting with Parents",
-        startDate: new Date(2025, 5, 26, 14, 30), // June 26, 2:30 PM
-        endDate: new Date(2025, 5, 26, 15, 30),
+        startDate: new Date(2025, 5, 26, 15, 30), // June 26, 3:30 PM
+        endDate: new Date(2025, 5, 26, 16, 30),
         isAllDay: false,
         description: "Academic meeting for Prekinder & Kinder parents - M/S Dining Hall",
         location: "M/S Dining Hall",
@@ -98,8 +98,8 @@ const fixCalendarEvents = async () => {
       // July 2025 Events
       {
         title: "Year 1, 2, 3, 4 Academic Meeting with Parents",
-        startDate: new Date(2025, 6, 3, 14, 30), // July 3, 2:30 PM
-        endDate: new Date(2025, 6, 3, 15, 30),
+        startDate: new Date(2025, 6, 2, 15, 30), // July 2, 3:30 PM (Tuesday)
+        endDate: new Date(2025, 6, 2, 16, 30),
         isAllDay: false,
         description: "Academic meeting for Year 1-4 parents - M/S Dining Hall",
         location: "M/S Dining Hall",
