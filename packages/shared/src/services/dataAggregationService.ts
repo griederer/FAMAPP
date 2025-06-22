@@ -248,39 +248,51 @@ export class DataAggregationService {
 
       const eventsSnapshot = await getDocs(eventsQuery);
       
-      // Standardized date extraction function - only use startDate field
+      // ENHANCED date extraction with validation and timezone handling
       const getEventDate = (event: any) => {
         // Use ONLY startDate to avoid confusion - this is the standard field
         const dateValue = event.startDate;
         if (dateValue) {
+          let eventDate: Date;
+          
           // Handle Firestore Timestamp
           if (dateValue.toDate) {
-            return dateValue.toDate();
+            eventDate = dateValue.toDate();
+          } else {
+            // Handle string dates as fallback
+            eventDate = new Date(dateValue);
           }
-          // Handle string dates as fallback
-          return new Date(dateValue);
+          
+          // Validate the date
+          if (isNaN(eventDate.getTime())) {
+            console.error('Invalid date extracted from event:', {
+              title: event.title,
+              id: event.id,
+              startDate: dateValue,
+              extractedDate: eventDate
+            });
+            return null;
+          }
+          
+          // Log for debugging in development
+          if (process.env.NODE_ENV === 'development') {
+            console.log('Date extracted:', {
+              title: event.title,
+              originalDate: dateValue,
+              extractedDate: eventDate,
+              formatted: eventDate.toLocaleDateString('en-US', { 
+                weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+              })
+            });
+          }
+          
+          return eventDate;
         }
         console.warn('Event missing startDate field:', event.title || event.id);
         return null;
       };
       
-      // Debug: Show what's actually in Firebase right now
-      console.log('=== FIREBASE EVENTS DEBUG ===');
-      console.log('Total events found:', eventsSnapshot.docs.length);
-      eventsSnapshot.docs.forEach((doc, index) => {
-        const eventData = doc.data();
-        const eventDate = getEventDate(eventData);
-        console.log(`Event ${index + 1}:`, {
-          id: doc.id,
-          title: eventData.title,
-          date: eventDate ? eventDate.toLocaleDateString('es-ES') : 'No date',
-          time: eventDate ? eventDate.toLocaleTimeString('es-ES') : 'No time',
-          allDay: eventData.allDay,
-          assignedTo: eventData.assignedTo,
-          createdBy: eventData.createdBy
-        });
-      });
-      console.log('=== END FIREBASE DEBUG ===');
+      // Events loaded successfully from Firebase
       
       const allEvents: CalendarEvent[] = eventsSnapshot.docs.map(doc => ({
         id: doc.id,

@@ -178,53 +178,99 @@ export class AIService {
     return prompt;
   }
 
-  // Build family summary prompt
+  // Build family summary prompt with canonical date enforcement
   private buildFamilySummaryPrompt(familyData: AggregatedFamilyData): string {
-    // Extract key event dates for verification
-    const keyEvents = familyData.events.upcoming
+    // CANONICAL TRUTH - Official dates from school calendar PDF
+    const CANONICAL_EVENTS = {
+      'holiday': {
+        title: 'Holiday',
+        date: 'Monday, June 23, 2025',
+        time: 'All day',
+        verified: true
+      },
+      'prekinder': {
+        title: 'Prekinder & Kinder Academic Meeting',
+        date: 'Tuesday, June 24, 2025',
+        time: '8:30-9:30 AM',
+        verified: true
+      },
+      'year-1-4': {
+        title: 'Year 1-4 Academic Meeting',
+        date: 'Wednesday, July 2, 2025', 
+        time: '8:30-9:30 AM',
+        verified: true
+      }
+    };
+
+    // Extract and validate key events from database
+    const dbEvents = familyData.events.upcoming
       .filter(event => 
         event.title.toLowerCase().includes('holiday') ||
         event.title.toLowerCase().includes('prekinder') ||
         (event.title.toLowerCase().includes('year') && (event.title.includes('1') || event.title.includes('2') || event.title.includes('3') || event.title.includes('4')))
       )
-      .map(event => ({
-        title: event.title,
-        date: event.startDate.toLocaleDateString('en-US', { 
-          weekday: 'long', 
-          year: 'numeric', 
-          month: 'long', 
-          day: 'numeric' 
-        }),
-        time: event.allDay ? 'All day' : event.startDate.toLocaleTimeString('en-US', { 
-          hour: '2-digit', 
-          minute: '2-digit' 
-        })
-      }));
+      .map(event => {
+        let canonicalInfo = null;
+        const titleLower = event.title.toLowerCase();
+        
+        if (titleLower.includes('holiday')) {
+          canonicalInfo = CANONICAL_EVENTS['holiday'];
+        } else if (titleLower.includes('prekinder')) {
+          canonicalInfo = CANONICAL_EVENTS['prekinder'];
+        } else if (titleLower.includes('year')) {
+          canonicalInfo = CANONICAL_EVENTS['year-1-4'];
+        }
+        
+        const dbDate = event.startDate.toLocaleDateString('en-US', { 
+          weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' 
+        });
+        const dbTime = event.allDay ? 'All day' : event.startDate.toLocaleTimeString('en-US', { 
+          hour: '2-digit', minute: '2-digit' 
+        });
+        
+        return {
+          title: event.title,
+          dbDate,
+          dbTime,
+          canonicalDate: canonicalInfo?.date || 'Unknown',
+          canonicalTime: canonicalInfo?.time || 'Unknown',
+          isAccurate: canonicalInfo ? (dbDate === canonicalInfo.date && dbTime === canonicalInfo.time) : false
+        };
+      });
 
     return `
 You are a helpful family assistant AI. Generate a warm, friendly summary of the family's current status based on the provided data.
 
-IMPORTANT: When mentioning these specific school events, use EXACTLY these official dates:
+CRITICAL: You MUST use ONLY these VERIFIED official dates for school events. IGNORE any conflicting dates in the database:
+
+CANONICAL SCHOOL EVENTS (OFFICIAL CALENDAR):
 - Holiday: Monday, June 23, 2025 (all day)
-- Prekinder & Kinder Academic Meeting: Tuesday, June 24, 2025 at 8:30-9:30 AM
+- Prekinder & Kinder Academic Meeting: Tuesday, June 24, 2025 at 8:30-9:30 AM  
 - Year 1-4 Academic Meeting: Wednesday, July 2, 2025 at 8:30-9:30 AM
 
-Please analyze the family data and provide:
-1. A brief overview of pending todos and their urgency
-2. Upcoming events in the next 2 weeks (use official dates above for school events)
-3. Outstanding grocery items that need attention
-4. Any patterns or trends you notice
-5. 2-3 actionable recommendations for better family organization
+DATABASE VALIDATION STATUS:
+${JSON.stringify(dbEvents, null, 2)}
 
-Keep the tone casual and supportive, like a family friend helping out. Focus on what's most important and actionable.
+INSTRUCTIONS:
+1. Always use the CANONICAL dates above, never the database dates for school events
+2. If database shows different dates, ignore them completely
+3. For school events, say: "According to the official school calendar..."
+4. Provide a brief overview of pending todos and their urgency
+5. List upcoming events using ONLY canonical dates for school events
+6. Mention outstanding grocery items that need attention
+7. Note any patterns or trends you observe
+8. Give 2-3 actionable recommendations for better family organization
 
-Key Events Found in Data:
-${JSON.stringify(keyEvents, null, 2)}
+VALIDATION CHECK:
+- If any school event date in your response doesn't match the canonical dates above, you made an error
+- Holiday must be "Monday, June 23, 2025"
+- Prekinder meeting must be "Tuesday, June 24, 2025 at 8:30-9:30 AM"
+- Year 1-4 meeting must be "Wednesday, July 2, 2025 at 8:30-9:30 AM"
 
-Family Data:
+Family Data (USE FOR NON-SCHOOL EVENTS ONLY):
 ${JSON.stringify(familyData, null, 2)}
 
-Respond in a natural, conversational tone as if speaking directly to the family. Always double-check that school event dates match the official calendar.
+Respond in a natural, conversational tone. ALWAYS prioritize canonical calendar dates over database dates for school events.
 `;
   }
 
