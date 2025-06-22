@@ -52,15 +52,102 @@ export const SimplifiedAIDashboard: React.FC<SimplifiedAIDashboardProps> = ({ cl
         await initializeAIService();
         console.log('✅ AI Service ready for Simplified Dashboard');
         
-        // Load calendar fix script
-        const script = document.createElement('script');
-        script.src = '/src/scripts/fixCalendarEvents.js';
-        script.type = 'module';
-        document.head.appendChild(script);
-        
-        setTimeout(() => {
-          console.log('🔧 Calendar fix script available: window.fixCalendarEvents()');
-        }, 1000);
+        // Load calendar fix script directly
+        try {
+          const scriptResponse = await fetch('/src/scripts/fixCalendarEvents.js');
+          const scriptText = await scriptResponse.text();
+          eval(scriptText);
+          console.log('🔧 Calendar fix script loaded successfully');
+        } catch (error) {
+          console.error('❌ Failed to load calendar fix script:', error);
+          // Fallback: load script inline
+          const fixCalendarEvents = async () => {
+            console.log('🗓️ Starting calendar events fix...');
+            
+            try {
+              // Import Firebase modules
+              const { getFirebaseServices } = await import('../../config/firebase.js');
+              const { collection, getDocs, deleteDoc, doc, addDoc, Timestamp } = await import('firebase/firestore');
+              
+              const { db } = getFirebaseServices();
+              
+              // Delete existing events
+              console.log('🗑️ Deleting existing events...');
+              const eventsSnapshot = await getDocs(collection(db, 'events'));
+              const deletePromises = eventsSnapshot.docs.map(eventDoc => deleteDoc(doc(db, 'events', eventDoc.id)));
+              await Promise.all(deletePromises);
+              console.log(`✅ Deleted ${eventsSnapshot.docs.length} existing events`);
+              
+              // Add correct events
+              const correctEvents = [
+                {
+                  title: "Holiday (no hay clases)",
+                  startDate: new Date(2025, 5, 23),
+                  endDate: new Date(2025, 5, 23),
+                  isAllDay: true,
+                  description: "School holiday - no classes",
+                  assignedTo: "Borja",
+                  category: "holiday",
+                  color: "#e53e3e"
+                },
+                {
+                  title: "Prekinder & Kinder Academic Meeting with Parents - M/S Dining Hall",
+                  startDate: new Date(2025, 5, 24, 8, 30),
+                  endDate: new Date(2025, 5, 24, 9, 30),
+                  isAllDay: false,
+                  description: "Taller de Apoderados - M/S Dining Hall",
+                  location: "M/S Dining Hall",
+                  assignedTo: "Borja",
+                  category: "education",
+                  color: "#3182ce"
+                },
+                {
+                  title: "Year 1, 2, 3, 4 Academic Meeting with Parents - M/S Dining Hall",
+                  startDate: new Date(2025, 6, 2, 8, 30),
+                  endDate: new Date(2025, 6, 2, 9, 30),
+                  isAllDay: false,
+                  description: "Taller de Apoderados - M/S Dining Hall",
+                  location: "M/S Dining Hall",
+                  assignedTo: "Borja",
+                  category: "education",
+                  color: "#3182ce"
+                }
+              ];
+              
+              // Add each event
+              for (const event of correctEvents) {
+                const eventData = {
+                  title: event.title,
+                  description: event.description,
+                  startDate: Timestamp.fromDate(event.startDate),
+                  endDate: Timestamp.fromDate(event.endDate),
+                  isAllDay: event.isAllDay,
+                  allDay: event.isAllDay,
+                  location: event.location || '',
+                  assignedTo: event.assignedTo,
+                  category: event.category,
+                  color: event.color,
+                  recurring: false,
+                  createdAt: Timestamp.now(),
+                  updatedAt: Timestamp.now(),
+                  createdBy: 'calendar-fix-script'
+                };
+                
+                await addDoc(collection(db, 'events'), eventData);
+                console.log(`✅ Added: ${event.title}`);
+              }
+              
+              console.log('🎉 Calendar events fixed successfully!');
+              setTimeout(() => window.location.reload(), 2000);
+              
+            } catch (error) {
+              console.error('❌ Error fixing calendar events:', error);
+            }
+          };
+          
+          window.fixCalendarEvents = fixCalendarEvents;
+          console.log('🔧 Calendar fix function available: window.fixCalendarEvents()');
+        }
         
       } catch (error) {
         console.error('❌ Failed to initialize AI Service for Simplified Dashboard:', error);
