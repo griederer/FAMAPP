@@ -155,14 +155,28 @@ export const ENVIRONMENT_PRESETS = {
 export type AppEnvironment = keyof typeof ENVIRONMENT_PRESETS;
 export type { AppEnvironmentConfig };
 
-// Initialize AI service immediately when this module is imported
+// Initialize AI service with retry logic for production
 // This ensures the AI service is available throughout the application
 // Skip initialization during testing
 if (typeof process === 'undefined' || process.env.NODE_ENV !== 'test') {
-  try {
-    initializeAIService();
-  } catch (error) {
-    // Log the error but don't crash the app - AI features will be disabled
-    console.warn('⚠️ AI Service initialization failed - AI features will be disabled:', error);
-  }
+  // Use a timeout to ensure DOM is ready and environment variables are loaded
+  setTimeout(() => {
+    try {
+      console.log('🤖 Attempting to initialize AI Service...');
+      const aiService = initializeAIService();
+      console.log('✅ AI Service initialized successfully');
+    } catch (error) {
+      console.error('❌ AI Service initialization failed:', error);
+      // Try again after a delay in case of temporary issues
+      setTimeout(() => {
+        try {
+          console.log('🔄 Retrying AI Service initialization...');
+          const aiService = initializeAIService();
+          console.log('✅ AI Service initialized successfully on retry');
+        } catch (retryError) {
+          console.error('❌ AI Service initialization failed on retry - AI features will be disabled:', retryError);
+        }
+      }, 2000);
+    }
+  }, 100);
 }

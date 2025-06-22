@@ -4,6 +4,7 @@ import { useAI } from '../../hooks/useAI';
 import { useI18n } from '../../hooks/useI18n';
 import { useRealTimeData } from '../../hooks/useRealTimeData';
 import type { AggregatedFamilyData, AIResponse } from '@famapp/shared';
+import { initializeAIService } from '../../config/ai';
 import { LoadingState } from '../ui/LoadingState';
 import { ErrorMessage } from '../ui/ErrorMessage';
 import { Card } from '../ui/Card';
@@ -113,6 +114,21 @@ export const AIDashboard: React.FC<AIDashboardProps> = ({ className = '' }) => {
       }));
     }
   }, [isHealthy, generateSummary]);
+
+  // Ensure AI service is initialized on component mount
+  useEffect(() => {
+    const ensureAIService = async () => {
+      try {
+        console.log('🤖 Ensuring AI Service is initialized for Dashboard...');
+        await initializeAIService();
+        console.log('✅ AI Service ready for Dashboard');
+      } catch (error) {
+        console.error('❌ Failed to initialize AI Service for Dashboard:', error);
+      }
+    };
+    
+    ensureAIService();
+  }, []);
 
   // Generate AI summary when family data is available and AI is healthy
   useEffect(() => {

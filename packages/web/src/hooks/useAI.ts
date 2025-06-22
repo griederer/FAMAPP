@@ -1,7 +1,7 @@
 // React hook for AI service integration
 import { useState, useEffect, useCallback } from 'react';
 import { getAIService, type AIService, type AggregatedFamilyData, type AIResponse, type ConversationMessage } from '@famapp/shared';
-import { checkAIServiceHealth } from '../config/ai';
+import { checkAIServiceHealth, initializeAIService } from '../config/ai';
 
 // Hook return type
 interface UseAIReturn {
@@ -29,9 +29,17 @@ export function useAI(): UseAIReturn {
         setError(null);
 
         // Get the AI service (should be initialized in config/ai.ts)
-        const service = getAIService();
+        let service;
+        try {
+          service = getAIService();
+        } catch (serviceError) {
+          console.log('AI Service not initialized, attempting to initialize now...');
+          // Try to initialize the service if it's not available
+          service = initializeAIService();
+        }
+        
         if (!service) {
-          throw new Error('AI Service not initialized. Check your API configuration.');
+          throw new Error('AI Service could not be initialized. Check your API configuration.');
         }
 
         setAiService(service);
