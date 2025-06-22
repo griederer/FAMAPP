@@ -60,93 +60,169 @@ export const SimplifiedAIDashboard: React.FC<SimplifiedAIDashboardProps> = ({ cl
           console.log('🔧 Calendar audit script loaded successfully');
         } catch (error) {
           console.error('❌ Failed to load calendar audit script:', error);
-          // Fallback: load script inline
-          const fixCalendarEvents = async () => {
-            console.log('🗓️ Starting calendar events fix...');
+          // Load inline calendar audit and fix functions
+          const calendarEventAudit = async () => {
+            console.log('🔍 CALENDAR AUDIT STARTING...');
             
             try {
-              // Import Firebase modules
+              const { getFirebaseServices } = await import('../../config/firebase.js');
+              const { collection, getDocs } = await import('firebase/firestore');
+              
+              const { db } = getFirebaseServices();
+              const eventsSnapshot = await getDocs(collection(db, 'events'));
+              
+              console.log('📊 CURRENT DATABASE STATE:');
+              console.log(`Total events found: ${eventsSnapshot.docs.length}`);
+              
+              const eventsByTitle = {};
+              
+              eventsSnapshot.docs.forEach((doc, index) => {
+                const data = doc.data();
+                const startDate = data.startDate?.toDate?.() || new Date(data.startDate);
+                const title = data.title;
+                
+                if (!eventsByTitle[title]) {
+                  eventsByTitle[title] = [];
+                }
+                
+                eventsByTitle[title].push({
+                  id: doc.id,
+                  title,
+                  date: startDate,
+                  dateString: startDate.toLocaleDateString('es-ES'),
+                  timeString: startDate.toLocaleTimeString('es-ES'),
+                  allDay: data.allDay || data.isAllDay,
+                  assignedTo: data.assignedTo,
+                  createdBy: data.createdBy
+                });
+                
+                console.log(`Event ${index + 1}:`, {
+                  id: doc.id,
+                  title,
+                  date: startDate.toLocaleDateString('es-ES'),
+                  time: data.allDay ? 'All day' : startDate.toLocaleTimeString('es-ES'),
+                  assignedTo: data.assignedTo
+                });
+              });
+              
+              console.log('\\n🔍 DUPLICATE/CONFLICT ANALYSIS:');
+              Object.keys(eventsByTitle).forEach(title => {
+                if (eventsByTitle[title].length > 1) {
+                  console.log(`❌ CONFLICT - "${title}": ${eventsByTitle[title].length} versions`);
+                  eventsByTitle[title].forEach((event, i) => {
+                    console.log(`  Version ${i + 1}: ${event.dateString} ${event.allDay ? '(All day)' : event.timeString}`);
+                  });
+                }
+              });
+              
+              console.log('\\n📋 CANONICAL TRUTH (from official PDF):');
+              console.log('1. Holiday: Monday, June 23, 2025 (all day)');
+              console.log('2. Prekinder Meeting: Tuesday, June 24, 2025 at 8:30-9:30 AM');
+              console.log('3. Year 1-4 Meeting: Wednesday, July 2, 2025 at 8:30-9:30 AM');
+              
+              return { eventsByTitle, totalEvents: eventsSnapshot.docs.length };
+              
+            } catch (error) {
+              console.error('❌ Audit failed:', error);
+            }
+          };
+
+          const fixCalendarEventsCompletely = async () => {
+            console.log('🛠️ COMPLETE CALENDAR FIX STARTING...');
+            
+            try {
               const { getFirebaseServices } = await import('../../config/firebase.js');
               const { collection, getDocs, deleteDoc, doc, addDoc, Timestamp } = await import('firebase/firestore');
               
               const { db } = getFirebaseServices();
               
-              // Delete existing events
-              console.log('🗑️ Deleting existing events...');
+              // STEP 1: Complete cleanup
+              console.log('🗑️ STEP 1: Deleting ALL existing events...');
               const eventsSnapshot = await getDocs(collection(db, 'events'));
               const deletePromises = eventsSnapshot.docs.map(eventDoc => deleteDoc(doc(db, 'events', eventDoc.id)));
               await Promise.all(deletePromises);
-              console.log(`✅ Deleted ${eventsSnapshot.docs.length} existing events`);
+              console.log(`✅ Deleted ${eventsSnapshot.docs.length} events`);
               
-              // Add correct events
-              const correctEvents = [
+              // STEP 2: Add ONLY canonical events from official PDF
+              console.log('📅 STEP 2: Adding canonical events from official PDF...');
+              
+              const canonicalEvents = [
                 {
                   title: "Holiday (no hay clases)",
-                  startDate: new Date(2025, 5, 23),
+                  startDate: new Date(2025, 5, 23), // Monday June 23 *** CANONICAL ***
                   endDate: new Date(2025, 5, 23),
-                  isAllDay: true,
-                  description: "School holiday - no classes",
+                  allDay: true,
+                  description: "School holiday - No classes",
                   assignedTo: "Borja",
-                  category: "holiday",
-                  color: "#e53e3e"
+                  category: "holiday"
                 },
                 {
-                  title: "Prekinder & Kinder Academic Meeting with Parents - M/S Dining Hall",
-                  startDate: new Date(2025, 5, 24, 8, 30),
+                  title: "Prekinder & Kinder Academic Meeting with Parents - M/S Dining Hall (Taller de Apoderados)",
+                  startDate: new Date(2025, 5, 24, 8, 30), // Tuesday June 24, 8:30 AM *** CANONICAL ***
                   endDate: new Date(2025, 5, 24, 9, 30),
-                  isAllDay: false,
-                  description: "Taller de Apoderados - M/S Dining Hall",
+                  allDay: false,
+                  description: "Academic meeting for Prekinder & Kinder parents at M/S Dining Hall",
                   location: "M/S Dining Hall",
                   assignedTo: "Borja",
-                  category: "education",
-                  color: "#3182ce"
+                  category: "education"
                 },
                 {
-                  title: "Year 1, 2, 3, 4 Academic Meeting with Parents - M/S Dining Hall",
-                  startDate: new Date(2025, 6, 2, 8, 30),
+                  title: "Year 1, 2, 3, 4 Academic Meeting with Parents - M/S Dining Hall (Taller de Apoderados)",
+                  startDate: new Date(2025, 6, 2, 8, 30), // Wednesday July 2, 8:30 AM *** CANONICAL ***
                   endDate: new Date(2025, 6, 2, 9, 30),
-                  isAllDay: false,
-                  description: "Taller de Apoderados - M/S Dining Hall",
+                  allDay: false,
+                  description: "Academic meeting for Year 1-4 parents at M/S Dining Hall",
                   location: "M/S Dining Hall",
                   assignedTo: "Borja",
-                  category: "education",
-                  color: "#3182ce"
+                  category: "education"
                 }
               ];
               
-              // Add each event
-              for (const event of correctEvents) {
+              // Add each canonical event
+              for (const event of canonicalEvents) {
                 const eventData = {
                   title: event.title,
                   description: event.description,
                   startDate: Timestamp.fromDate(event.startDate),
                   endDate: Timestamp.fromDate(event.endDate),
-                  isAllDay: event.isAllDay,
-                  allDay: event.isAllDay,
+                  allDay: event.allDay,
                   location: event.location || '',
                   assignedTo: event.assignedTo,
                   category: event.category,
-                  color: event.color,
+                  color: event.category === 'holiday' ? '#e53e3e' : '#3182ce',
                   recurring: false,
                   createdAt: Timestamp.now(),
                   updatedAt: Timestamp.now(),
-                  createdBy: 'calendar-fix-script'
+                  createdBy: 'canonical-fix-script'
                 };
                 
                 await addDoc(collection(db, 'events'), eventData);
-                console.log(`✅ Added: ${event.title}`);
+                console.log(`✅ Added: ${event.title} - ${event.startDate.toLocaleDateString('es-ES')}`);
               }
               
-              console.log('🎉 Calendar events fixed successfully!');
-              setTimeout(() => window.location.reload(), 2000);
+              console.log(`\\n🎉 CALENDAR COMPLETELY FIXED!`);
+              console.log(`📅 Added ${canonicalEvents.length} canonical events from official PDF`);
+              console.log('\\n📋 KEY EVENTS (CANONICAL TRUTH):');
+              console.log('• Holiday: Monday, June 23, 2025 (all day)');
+              console.log('• Prekinder Meeting: Tuesday, June 24, 2025 at 8:30-9:30 AM');  
+              console.log('• Year 1-4 Meeting: Wednesday, July 2, 2025 at 8:30-9:30 AM');
+              
+              // Clear all caches and refresh
+              console.log('🔄 Refreshing page to load clean data...');
+              setTimeout(() => window.location.reload(), 3000);
               
             } catch (error) {
-              console.error('❌ Error fixing calendar events:', error);
+              console.error('❌ Fix failed:', error);
             }
           };
           
-          window.fixCalendarEvents = fixCalendarEvents;
-          console.log('🔧 Calendar fix function available: window.fixCalendarEvents()');
+          // Make functions globally available
+          window.calendarEventAudit = calendarEventAudit;
+          window.fixCalendarEventsCompletely = fixCalendarEventsCompletely;
+          
+          console.log('🔧 Calendar audit tools loaded:');
+          console.log('  • window.calendarEventAudit() - Diagnose issues');
+          console.log('  • window.fixCalendarEventsCompletely() - Fix everything');
         }
         
       } catch (error) {
