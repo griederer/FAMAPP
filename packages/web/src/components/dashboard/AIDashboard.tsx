@@ -10,6 +10,7 @@ import { Card } from '../ui/Card';
 import { Button } from '../ui/Button';
 import { SmartCards } from './SmartCards';
 import { ChatInterface } from './ChatInterface';
+import { SmartAlerts } from './SmartAlerts';
 import './AIDashboard.css';
 
 // Component props
@@ -223,9 +224,14 @@ export const AIDashboard: React.FC<AIDashboardProps> = ({ className = '' }) => {
       case 'alerts':
         return (
           <div className="dashboard-alerts">
-            <h3>{t('dashboard.alerts.title')}</h3>
-            {/* Alerts could be derived from AI response content or family data */}
-            <p className="no-alerts">{t('dashboard.alerts.none')}</p>
+            {familyData && (
+              <SmartAlerts 
+                familyData={familyData}
+                className="dashboard-smart-alerts"
+                maxDisplayAlerts={15}
+                enableActions={true}
+              />
+            )}
           </div>
         );
       
