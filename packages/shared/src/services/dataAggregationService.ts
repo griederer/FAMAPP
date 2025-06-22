@@ -240,30 +240,64 @@ export class DataAggregationService {
       const weekEnd = new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000);
       const nextWeekEnd = new Date(now.getTime() + 14 * 24 * 60 * 60 * 1000);
 
-      // Fetch upcoming events
+      // Fetch all events (remove date filter temporarily to debug)
       const eventsQuery = query(
         collection(this.db, 'events'),
-        where('date', '>=', Timestamp.fromDate(now)),
-        orderBy('date', 'asc'),
         limit(config.maxItemsPerCategory)
       );
 
       const eventsSnapshot = await getDocs(eventsQuery);
+      
+      // Define date extraction function first
+      const getEventDate = (event: any) => {
+        // Try different common date field names
+        const dateValue = event.date || event.startDate || event.eventDate || event.dateTime;
+        if (dateValue) {
+          // Handle Firestore Timestamp
+          if (dateValue.toDate) {
+            return dateValue.toDate();
+          }
+          // Handle string dates
+          return new Date(dateValue);
+        }
+        return null;
+      };
+      
+      // Debug: Log event data structure and dates
+      if (eventsSnapshot.docs.length > 0) {
+        console.log('=== EVENT DEBUGGING ===');
+        eventsSnapshot.docs.forEach((doc, index) => {
+          const eventData = doc.data();
+          const eventDate = getEventDate(eventData);
+          console.log(`Event ${index + 1}:`, {
+            title: eventData.title || eventData.name || 'No title',
+            rawDate: eventData.date || eventData.startDate || eventData.eventDate,
+            parsedDate: eventDate,
+            formattedDate: eventDate ? eventDate.toLocaleString('es-ES') : 'Invalid date',
+            allFields: Object.keys(eventData)
+          });
+        });
+        console.log('Current date for comparison:', now.toLocaleString('es-ES'));
+        console.log('=== END EVENT DEBUGGING ===');
+      }
+      
       const allEvents: CalendarEvent[] = eventsSnapshot.docs.map(doc => ({
         id: doc.id,
         ...doc.data()
       } as CalendarEvent));
-
-      // Categorize events
-      const upcoming = allEvents.filter(event => 
-        new Date(event.startDate) <= upcomingCutoff
-      );
-      const thisWeek = allEvents.filter(event => 
-        new Date(event.startDate) <= weekEnd
-      );
+      
+      const upcoming = allEvents.filter(event => {
+        const eventDate = getEventDate(event);
+        return eventDate && eventDate >= now && eventDate <= upcomingCutoff;
+      });
+      
+      const thisWeek = allEvents.filter(event => {
+        const eventDate = getEventDate(event);
+        return eventDate && eventDate >= now && eventDate <= weekEnd;
+      });
       const nextWeek = allEvents.filter(event => {
-        const eventDate = new Date(event.startDate);
-        return eventDate > weekEnd && eventDate <= nextWeekEnd;
+        const eventDate = getEventDate(event);
+        return eventDate && eventDate > weekEnd && eventDate <= nextWeekEnd;
       });
 
       // Calculate member event statistics
