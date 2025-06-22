@@ -276,11 +276,13 @@ Eres un asistente familiar inteligente con acceso completo a los datos de planif
 - Identifica patrones o tendencias (si alguien está sobrecargado, tareas vencidas, etc.)
 
 **📅 CALENDARIO PRÓXIMAS 2 SEMANAS:**
-- Lista eventos cronológicamente con fechas exactas
-- IDENTIFICA CORRECTAMENTE el tipo de cada evento (feriado, reunión, cita, etc.)
-- Separa claramente: FERIADOS vs REUNIONES ESCOLARES vs CITAS
-- Identifica conflictos potenciales o días muy ocupados
-- Da contexto sobre la carga de trabajo semanal
+- Lista eventos cronológicamente con fechas EXACTAS
+- VERIFICA CUIDADOSAMENTE las fechas antes de reportar
+- Holiday está el LUNES 23 de junio (NO el martes 24)
+- Prekinder Meeting está el MARTES 24 de junio a las 8:30 AM (NO es holiday)
+- Year 1-4 Meeting está el MIÉRCOLES 2 de julio a las 8:30 AM (NO el jueves 3)
+- NUNCA confundas un "Academic Meeting" con un "Holiday"
+- Reporta el día de la semana Y la fecha para confirmar exactitud
 
 **🛒 GROCERIES PENDIENTES:**
 - Organiza por urgencia y categorías lógicas
