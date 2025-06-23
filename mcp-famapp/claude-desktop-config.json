@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "famapp": {
+      "command": "node",
+      "args": ["/Users/gonzaloriederer/FAMAPP/mcp-famapp/dist/index.js"],
+      "env": {
+        "NODE_ENV": "production"
+      }
+    }
+  }
+}
