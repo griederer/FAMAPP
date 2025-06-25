@@ -11,7 +11,8 @@
     "type-check": "tsc --noEmit",
     "test": "vitest",
     "test:ui": "vitest --ui",
-    "deploy": "npm run build && firebase deploy --only hosting"
+    "deploy": "npm run build && firebase deploy --only hosting",
+    "import-craighouse-events": "npx tsx src/scripts/importCraighouseEventsDirect.ts"
   },
   "dependencies": {
     "@famapp/shared": "1.0.0",

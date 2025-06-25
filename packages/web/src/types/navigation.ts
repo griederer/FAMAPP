@@ -1,5 +1,5 @@
 // Navigation types for FAMAPP
-export type ModuleId = 'todos' | 'calendar' | 'groceries' | 'documents' | 'ai-dashboard';
+export type ModuleId = 'todos' | 'calendar' | 'groceries' | 'documents';
 
 export interface NavigationItem {
   id: ModuleId;

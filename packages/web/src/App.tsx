@@ -17,7 +17,7 @@ const TodoModule = lazy(() => import('./components/modules').then(m => ({ defaul
 const CalendarModule = lazy(() => import('./components/modules').then(m => ({ default: m.CalendarModule })));
 const GroceriesModule = lazy(() => import('./components/modules').then(m => ({ default: m.GroceriesModule })));
 const DocumentsModule = lazy(() => import('./components/modules').then(m => ({ default: m.DocumentsModule })));
-const AIDashboard = lazy(() => import('./components/dashboard/SimplifiedAIDashboard').then(m => ({ default: m.default || m.SimplifiedAIDashboard })));
+// AI Dashboard removed - using pure calendar and todo management
 
 function App() {
   const [currentModule, setCurrentModule] = useState<ModuleId>('todos');
@@ -80,8 +80,7 @@ function App() {
               return <GroceriesModule />;
             case 'documents':
               return <DocumentsModule />;
-            case 'ai-dashboard':
-              return <AIDashboard />;
+            // AI Dashboard removed - focusing on direct calendar and todo management
             default:
               return <TodoModule />;
           }

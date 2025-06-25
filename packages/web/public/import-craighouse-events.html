@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Import Craighouse School Events</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .status {
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid;
+        }
+        .success {
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+            color: #721c24;
+        }
+        .info {
+            background-color: #d1ecf1;
+            border-color: #bee5eb;
+            color: #0c5460;
+        }
+        button {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+        .event-list {
+            margin-top: 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .event-item {
+            padding: 8px;
+            margin: 5px 0;
+            background-color: #f8f9fa;
+            border-radius: 3px;
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Import Craighouse School Events</h1>
+        <p>This tool will import all Craighouse School calendar events for June-July 2025 into Firebase Firestore.</p>
+        
+        <div id="status"></div>
+        
+        <button id="importBtn" onclick="importEvents()">Start Import</button>
+        
+        <div id="progress" class="event-list"></div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+        import { getFirestore, collection, addDoc, Timestamp, serverTimestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+        import { getAuth, signInWithEmailAndPassword, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: 'AIzaSyCau9vcS0cAludtgByrLqLd7_wGlcOYofQ',
+            authDomain: 'famapp-e80ff.firebaseapp.com',
+            projectId: "famapp-e80ff",
+            storageBucket: 'famapp-e80ff.firebasestorage.app',
+            messagingSenderId: "890760804458",
+            appId: '1:890760804458:web:09a0b17e167fba2a877213'
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+
+        // Craighouse School events data
+        const CRAIGHOUSE_SCHOOL_EVENTS = [
+            {
+                title: "Pupils return from mid-term holidays (clases comienzan)",
+                description: "Students return from mid-term holidays - classes begin",
+                startDate: new Date(2025, 5, 10, 8, 5),
+                endDate: new Date(2025, 5, 10, 15, 5),
+                allDay: false,
+                assignedTo: 'borja',
+                color: '#10b981',
+                createdBy: 'school-calendar-import'
+            },
+            {
+                title: "Year 2 Learning Together (apoderados invitados, por grupo)",
+                description: "Year 2 Learning Together - Primary Assembly Hall",
+                startDate: new Date(2025, 5, 11, 8, 30),
+                endDate: new Date(2025, 5, 11, 9, 30),
+                allDay: false,
+                assignedTo: 'borja',
+                color: '#3b82f6',
+                createdBy: 'school-calendar-import'
+            },
+            {
+                title: "Year 2 Learning Together (apoderados invitados, por grupo)",
+                description: "Year 2 Learning Together - Primary Assembly Hall",
+                startDate: new Date(2025, 5, 12, 8, 30),
+                endDate: new Date(2025, 5, 12, 9, 30),
+                allDay: false,
+                assignedTo: 'borja',
+                color: '#3b82f6',
+                createdBy: 'school-calendar-import'
+            },
+            {
+                title: "Year 3 Field Trip",
+                description: "Year 3 educational field trip",
+                startDate: new Date(2025, 5, 12, 8, 30),
+                endDate: new Date(2025, 5, 12, 12, 0),
+                allDay: false,
+                assignedTo: 'borja',
+                color: '#8b5cf6',
+                createdBy: 'school-calendar-import'
+            },
+            {
+                title: "Formative Area Parent Workshop - Year 3 & 4 parents invited",
+                description: "Formative Area Parent Workshop - M/S Inquiry Centre",
+                startDate: new Date(2025, 5, 19, 8, 30),
+                endDate: new Date(2025, 5, 19, 9, 30),
+                allDay: false,
+                assignedTo: 'borja',
+                color: '#f97316',
+                createdBy: 'school-calendar-import'
+            },
+            {
+                title: "Holiday - Día de los pueblos originarios (no hay clases)",
+                description: "Holiday - Day of Indigenous Peoples - no classes",
+                startDate: new Date(2025, 5, 20),
+                endDate: new Date(2025, 5, 20),
+                allDay: true,
+                assignedTo: 'borja',
+                color: '#ef4444',
+                createdBy: 'school-calendar-import'
+            },
+            {
+                title: "Holiday (no hay clases)",
+                description: "Holiday - no classes",
+                startDate: new Date(2025, 5, 23),
+                endDate: new Date(2025, 5, 23),
+                allDay: true,
+                assignedTo: 'borja',
+                color: '#ef4444',
+                createdBy: 'school-calendar-import'
+            },
+            {
+                title: "Prekinder & Kinder Academic Meeting with Parents",
+                description: "Prekinder & Kinder Academic Meeting with Parents - M/S Dining Hall",
+                startDate: new Date(2025, 5, 24, 8, 30),
+                endDate: new Date(2025, 5, 24, 9, 30),
+                allDay: false,
+                assignedTo: 'borja',
+                color: '#3b82f6',
+                createdBy: 'school-calendar-import'
+            },
+            {
+                title: "Year 1, 2, 3, 4 Academic Meeting with Parents",
+                description: "Year 1, 2, 3, 4 Academic Meeting with Parents - M/S Dining Hall",
+                startDate: new Date(2025, 6, 2, 8, 30),
+                endDate: new Date(2025, 6, 2, 9, 30),
+                allDay: false,
+                assignedTo: 'borja',
+                color: '#3b82f6',
+                createdBy: 'school-calendar-import'
+            },
+            {
+                title: "Playgroup Academic Meeting with Parents",
+                description: "Playgroup Academic Meeting with Parents - M/S Inquiry Centre",
+                startDate: new Date(2025, 6, 8, 8, 30),
+                endDate: new Date(2025, 6, 8, 9, 30),
+                allDay: false,
+                assignedTo: 'borja',
+                color: '#3b82f6',
+                createdBy: 'school-calendar-import'
+            },
+            {
+                title: "Last day for pupils (último día de clases)",
+                description: "Last day for pupils - end of first semester",
+                startDate: new Date(2025, 6, 9, 8, 5),
+                endDate: new Date(2025, 6, 9, 15, 5),
+                allDay: false,
+                assignedTo: 'borja',
+                color: '#10b981',
+                createdBy: 'school-calendar-import'
+            },
+            {
+                title: "First semester report/portfolio online meetings (no hay clases)",
+                description: "First semester report/portfolio online meetings - no classes",
+                startDate: new Date(2025, 6, 10),
+                endDate: new Date(2025, 6, 10),
+                allDay: true,
+                assignedTo: 'borja',
+                color: '#6366f1',
+                createdBy: 'school-calendar-import'
+            },
+            {
+                title: "First semester report/portfolio online meetings (no hay clases)",
+                description: "First semester report/portfolio online meetings - no classes",
+                startDate: new Date(2025, 6, 11),
+                endDate: new Date(2025, 6, 11),
+                allDay: true,
+                assignedTo: 'borja',
+                color: '#6366f1',
+                createdBy: 'school-calendar-import'
+            },
+            {
+                title: "Winter holidays/Vacaciones de invierno",
+                description: "Winter holidays - July 14 to July 21 (inclusive)",
+                startDate: new Date(2025, 6, 14),
+                endDate: new Date(2025, 6, 21),
+                allDay: true,
+                assignedTo: 'borja',
+                color: '#6b7280',
+                createdBy: 'school-calendar-import'
+            }
+        ];
+
+        function showStatus(message, type = 'info') {
+            const statusDiv = document.getElementById('status');
+            statusDiv.innerHTML = `<div class="status ${type}">${message}</div>`;
+        }
+
+        function addProgress(message, type = 'info') {
+            const progressDiv = document.getElementById('progress');
+            const eventItem = document.createElement('div');
+            eventItem.className = `event-item ${type}`;
+            eventItem.textContent = message;
+            progressDiv.appendChild(eventItem);
+            progressDiv.scrollTop = progressDiv.scrollHeight;
+        }
+
+        async function addEventToFirestore(eventData) {
+            try {
+                const docData = {
+                    title: eventData.title,
+                    description: eventData.description,
+                    startDate: Timestamp.fromDate(eventData.startDate),
+                    endDate: Timestamp.fromDate(eventData.endDate),
+                    allDay: eventData.allDay,
+                    assignedTo: eventData.assignedTo,
+                    color: eventData.color,
+                    createdBy: eventData.createdBy,
+                    createdAt: serverTimestamp(),
+                    updatedAt: serverTimestamp(),
+                    recurring: 'none'
+                };
+
+                const docRef = await addDoc(collection(db, 'events'), docData);
+                return docRef.id;
+            } catch (error) {
+                console.error('Error adding event to Firestore:', error);
+                throw error;
+            }
+        }
+
+        window.importEvents = async function() {
+            const importBtn = document.getElementById('importBtn');
+            const progressDiv = document.getElementById('progress');
+            
+            try {
+                importBtn.disabled = true;
+                progressDiv.innerHTML = '';
+                
+                showStatus('Starting import of Craighouse School events...', 'info');
+                
+                let successCount = 0;
+                let errorCount = 0;
+                
+                for (const eventData of CRAIGHOUSE_SCHOOL_EVENTS) {
+                    try {
+                        const docId = await addEventToFirestore(eventData);
+                        addProgress(`✅ Added: ${eventData.title} (ID: ${docId})`, 'success');
+                        successCount++;
+                    } catch (error) {
+                        addProgress(`❌ Failed to add: ${eventData.title} - ${error.message}`, 'error');
+                        errorCount++;
+                    }
+                }
+                
+                const finalMessage = `Import completed: ${successCount} successful, ${errorCount} failed`;
+                showStatus(finalMessage, errorCount > 0 ? 'error' : 'success');
+                
+            } catch (error) {
+                showStatus(`Import failed: ${error.message}`, 'error');
+            } finally {
+                importBtn.disabled = false;
+            }
+        };
+
+        // Check authentication status
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                showStatus(`Authenticated as: ${user.email}`, 'success');
+                document.getElementById('importBtn').disabled = false;
+            } else {
+                showStatus('Please sign in to Firebase first. Open your web app in another tab to authenticate.', 'error');
+                document.getElementById('importBtn').disabled = true;
+            }
+        });
+    </script>
+</body>
+</html>
